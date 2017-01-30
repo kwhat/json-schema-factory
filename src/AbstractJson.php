@@ -5,7 +5,7 @@ namespace Bildr\Json\Schema;
 use Exception;
 use JsonSerializable;
 
-abstract class AbstractApi implements JsonSerializable
+abstract class AbstractJson implements JsonSerializable
 {
     final public function __construct(array $properties = [])
     {
