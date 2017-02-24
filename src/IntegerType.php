@@ -1,10 +1,10 @@
 <?php
 
-namespace Bildr\Json\Schema;
+namespace Json\Schema;
 
-use Bildr\PoPoGadget\Exceptions;
+use Json\Schema\Exceptions;
 
-class IntegerType implements GenericType
+class IntegerType implements TypeInterface
 {
     /** @var int $multipleOf */
     private $multipleOf;

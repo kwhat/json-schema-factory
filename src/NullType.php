@@ -1,8 +1,8 @@
 <?php
 
-namespace Bildr\Json\Schema;
+namespace Json\Schema;
 
-class NullType implements GenericType
+class NullType implements TypeInterface
 {
     /**
      * @return array

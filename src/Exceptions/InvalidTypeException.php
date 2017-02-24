@@ -1,6 +1,6 @@
 <?php
 
-namespace Bildr\Json\Schema\Exceptions;
+namespace Json\Schema\Exceptions;
 
 use Exception;
 

@@ -1,8 +1,8 @@
 <?php
 
-namespace Bildr\Json\Schema;
+namespace Json\Schema;
 
-use Bildr\PoPoGadget\Exceptions;
+use Json\Schema\Exceptions;
 
 class Factory
 {

@@ -2,7 +2,7 @@
 
 namespace Bildr\Json\Schema;
 
-class BooleanType implements GenericType
+class BooleanType implements TypeInterface
 {
     /**
      * @return array

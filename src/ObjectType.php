@@ -1,14 +1,14 @@
 <?php
 
-namespace Bildr\Json\Schema;
+namespace Json\Schema;
 
 use Doctrine\Common\Reflection;
-use Bildr\PoPoGadget\Doctrine;
-use Bildr\PoPoGadget\Exceptions;
+use Json\Schema\Doctrine;
+use Json\Schema\Exceptions;
 use ReflectionClass;
 use ReflectionProperty;
 
-class ObjectType extends BaseType implements GenericType
+class ObjectType extends BaseType implements TypeInterface
 {
     /** @var array $properties */
     private $properties;

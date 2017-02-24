@@ -1,6 +1,6 @@
 <?php
 
-namespace Bildr\Json\Schema\Doctrine;
+namespace Json\Schema\Doctrine;
 
 use Doctrine\Common\Reflection;
 use ReflectionClass;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Bildr\Json\Schema;
+namespace Json\Schema;
 
 class BaseType
 {

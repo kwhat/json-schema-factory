@@ -1,15 +1,13 @@
 {
     "name": "aicconsultinginc/Bildr-JsonSchema",
     "type": "library",
-    "description": "Hunters Amazing JSON Schema Genertor..",
-    "keywords": [],
-    "homepage": "https://api.bildr.io",
-    "license": "commercial",
+    "description": "Hunter Elbourn's JSON Schema Generator..",
+    "license": "unknown",
     "authors": [
         {
             "name": "Hunter Elbourn",
             "role": "Developer",
-            "homepage": "https://bildr.io/"
+            "homepage": "https://github.com/HunterEl"
         }
     ],
     "require": {
@@ -22,12 +20,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Bildr\\Json\\Schema\\": "src"
+            "Json\\Schema\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Bildr\\Json\\Schema\\Test\\": "tests"
+            "Json\\Schema\\Test\\": "tests"
         }
     },
     "config": {

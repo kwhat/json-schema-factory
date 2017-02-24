@@ -1,10 +1,10 @@
 <?php
 
-namespace Bildr\Json\Schema;
+namespace Json\Schema;
 
-use Bildr\PoPoGadget\Exceptions;
+use Json\Schema\Exceptions;
 
-class StringType implements GenericType
+class StringType implements TypeInterface
 {
     /** @var int|null $minLength */
     private $minLength;

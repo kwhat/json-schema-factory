@@ -1,10 +1,10 @@
 <?php
 
-namespace Bildr\Json\Schema;
+namespace Json\Schema;
 
-use Bildr\Json\Schema\Exceptions;
+use Json\Schema\Exceptions;
 
-class ArrayType extends BaseType implements GenericType
+class ArrayType extends BaseType implements TypeInterface
 {
     /** @var bool $additionalItems */
     private $additionalItems;
