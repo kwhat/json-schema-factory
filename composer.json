@@ -1,9 +1,14 @@
 {
-    "name": "aicconsultinginc/JsonSchema",
+    "name": "aicconsultinginc/Bildr-JsonSchema",
     "type": "library",
     "description": "JSON Schema Generator.",
     "license": "unknown",
     "authors": [
+        {
+            "name": "Alex Barker",
+            "role": "Developer",
+            "homepage": "https://github.com/kwhat"
+        },
         {
             "name": "Hunter Elbourn",
             "role": "Developer",
