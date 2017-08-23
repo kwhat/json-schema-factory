@@ -1,8 +1,8 @@
 <?php
 
-namespace Json\Schema;
+namespace JsonSchema;
 
-use Json\Schema\Exceptions;
+use JsonSchema\Exception;
 
 class ArrayType extends BaseType implements TypeInterface
 {

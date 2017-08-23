@@ -8,7 +8,7 @@ use Json\Schema\Exceptions;
 use ReflectionClass;
 use ReflectionProperty;
 
-class ObjectType extends BaseType implements TypeInterface
+class Object extends BaseType implements TypeInterface
 {
     /** @var array $properties */
     private $properties;

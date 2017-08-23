@@ -1,10 +1,10 @@
 <?php
 
-namespace Json\Schema;
+namespace JsonSchema;
 
-use Json\Schema\Exceptions;
+use JsonSchema\Exception;
 
-class StringType implements TypeInterface
+class String implements TypeInterface
 {
     /** @var int|null $minLength */
     private $minLength;
@@ -25,13 +25,12 @@ class StringType implements TypeInterface
 
     /**
      * @param array $properties
-     * @throws Exceptions\InvalidTypeException
-     * @throws Exceptions\AnnotationNotFound
+     * @throws Exception\InvalidTypeException
+     * @throws Exception\AnnotationNotFound
      */
     protected function processProperties(array $properties)
     {
-        foreach ($properties as $property)
-        {
+        foreach ($properties as $property) {
             // TODO Check to see if preg split actually succeeded.
             $parsedProperty = preg_split('/\s/', $property);
             if (!isset($parsedProperty[0])) {

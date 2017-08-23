@@ -1,5 +1,5 @@
 {
-    "name": "aicconsultinginc/Bildr-JsonSchema",
+    "name": "aicconsultinginc/JsonSchema",
     "type": "library",
     "description": "JSON Schema Generator.",
     "license": "unknown",
@@ -11,7 +11,7 @@
         }
     ],
     "require": {
-        "php": ">=5.6.0",
+        "php": ">=5.6",
         "doctrine/common": "^2.7"
     },
     "require-dev": {
@@ -20,12 +20,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Json\\Schema\\": "src"
+            "JsonSchema\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Json\\Schema\\Test\\": "tests"
+            "JsonSchema\\Test\\": "tests"
         }
     },
     "config": {

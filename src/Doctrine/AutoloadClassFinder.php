@@ -1,15 +1,16 @@
 <?php
 
-namespace Json\Schema\Doctrine;
+namespace JsonSchema\Doctrine;
 
 use Doctrine\Common\Reflection;
 use ReflectionClass;
 
-class Psr4FileFinder implements Reflection\ClassFinderInterface
+class AutoloadFinder implements Reflection\ClassFinderInterface
 {
     /**
      * @param string $class
-     * @return null|string $result
+     *
+     * @return string|null $result
      */
     public function findFile($class)
     {

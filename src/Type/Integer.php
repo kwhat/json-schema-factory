@@ -1,10 +1,10 @@
 <?php
 
-namespace Json\Schema;
+namespace JsonSchema;
 
-use Json\Schema\Exceptions;
+use JsonSchema\Exceptions;
 
-class NumberType implements TypeInterface
+class IntegerType implements TypeInterface
 {
     /** @var int $multipleOf */
     private $multipleOf;
@@ -20,6 +20,7 @@ class NumberType implements TypeInterface
 
     /** @var bool $exclusiveMinimum */
     private $exclusiveMinimum;
+
 
     /**
      * @param array $properties
@@ -81,18 +82,19 @@ class NumberType implements TypeInterface
     public function jsonSerialize()
     {
         $serializableArray = array();
-        $serializableArray["type"] = "number";
+
+        $serializableArray["type"] = "integer";
 
         if ($this->multipleOf !== null) {
             $serializableArray["multipleOf"] = $this->multipleOf;
         }
 
-        if ($this->maximum !== null) {
-            $serializableArray["maximum"] = $this->maximum;
-        }
-
         if ($this->minimum !== null) {
             $serializableArray["minimum"] = $this->minimum;
+        }
+
+        if ($this->maximum !== null) {
+            $serializableArray["maximum"] = $this->maximum;
         }
 
         if ($this->exclusiveMinimum !== null) {

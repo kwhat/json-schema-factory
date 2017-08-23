@@ -4,7 +4,7 @@ namespace Json\Schema;
 
 use Json\Schema\Exceptions;
 
-class IntegerType implements TypeInterface
+class Number implements TypeInterface
 {
     /** @var int $multipleOf */
     private $multipleOf;
@@ -20,7 +20,6 @@ class IntegerType implements TypeInterface
 
     /** @var bool $exclusiveMinimum */
     private $exclusiveMinimum;
-
 
     /**
      * @param array $properties
@@ -82,19 +81,18 @@ class IntegerType implements TypeInterface
     public function jsonSerialize()
     {
         $serializableArray = array();
-
-        $serializableArray["type"] = "integer";
+        $serializableArray["type"] = "number";
 
         if ($this->multipleOf !== null) {
             $serializableArray["multipleOf"] = $this->multipleOf;
         }
 
-        if ($this->minimum !== null) {
-            $serializableArray["minimum"] = $this->minimum;
-        }
-
         if ($this->maximum !== null) {
             $serializableArray["maximum"] = $this->maximum;
+        }
+
+        if ($this->minimum !== null) {
+            $serializableArray["minimum"] = $this->minimum;
         }
 
         if ($this->exclusiveMinimum !== null) {

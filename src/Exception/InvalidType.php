@@ -1,6 +1,6 @@
 <?php
 
-namespace Json\Schema\Exceptions;
+namespace JsonSchema\Exception;
 
 use Exception;
 
