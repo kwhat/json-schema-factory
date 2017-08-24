@@ -1,22 +1,23 @@
 <?php
 
-namespace Json\Schema;
+namespace JsonSchema\Collection;
 
 use Doctrine\Common\Reflection;
-use Json\Schema\Doctrine;
-use Json\Schema\Exceptions;
+use JsonSchema\AbstractCollection;
+use JsonSchema\Doctrine;
+use JsonSchema\Exception;
 use ReflectionClass;
 use ReflectionProperty;
 
-class Object extends BaseType implements TypeInterface
+class ObjectMap extends AbstractCollection
 {
     /** @var array $properties */
     private $properties;
 
-    /** @var  string $nameSpace */
+    /** @var string $nameSpace */
     private $namespace;
 
-    /** @var  array $required */
+    /** @var array $required */
     private $required;
 
     /** @var string $className */
@@ -30,15 +31,16 @@ class Object extends BaseType implements TypeInterface
      */
     public function __construct($class)
     {
+        $classFinder = new Doctrine\AutoloadClassFinder();
+        $reflectionClass = new ReflectionClass($class);
+        $reflectionParser = new Reflection\StaticReflectionParser($reflectionClass->getName(), $classFinder);
+
+        $propertyList = $reflectionClass->getProperties(ReflectionProperty::IS_PUBLIC);
+
         $this->properties = array();
         $this->required = array();
-
-        $reflectedClass = new ReflectionClass($class);
-        $this->namespace = $reflectedClass->getNamespaceName();
-        $propertyList = $reflectedClass->getProperties(ReflectionProperty::IS_PUBLIC);
-        $this->className = $reflectedClass->getShortName();
-        $fileFinder = new Doctrine\Psr4FileFinder();
-        $reflectionParser = new Reflection\StaticReflectionParser($reflectedClass->getName(), $fileFinder);
+        $this->namespace = $reflectionClass->getNamespaceName();
+        $this->className = $reflectionClass->getShortName();
         $this->useStatements = $reflectionParser->getUseStatements();
 
         $this->processProperties($propertyList);
@@ -46,7 +48,8 @@ class Object extends BaseType implements TypeInterface
 
     /**
      * @param array $propertyList
-     * @throws Exceptions\AnnotationNotFound
+     *
+     * @throws Exception\AnnotationNotFound
      */
     protected function processProperties(array $propertyList)
     {
@@ -54,12 +57,12 @@ class Object extends BaseType implements TypeInterface
 
         /** @var ReflectionProperty $property */
         foreach ($propertyList as $property) {
-            // Note: For each property go through and pull it's doc comment that fits the regex.
+            // For each property go through and pull it's doc comment that fits the regex.
             $regexSuccess = preg_match_all('/\@\w+(.)*/', $property->getDocComment(), $annotationList);
             if ($regexSuccess) {
                 $annotationsForParsing = $annotationList[0];
                 $propertyName = $property->getName();
-                // Note: Parse the line that we matched.
+                // Parse the line that we matched.
                 $this->parseAnnotationList($annotationsForParsing, $propertyName);
             }
         }
@@ -68,26 +71,25 @@ class Object extends BaseType implements TypeInterface
     /**
      * @param array $annotationList
      * @param string $propertyName
-     * @throws Exceptions\InvalidTypeException
+     * 
+     * @throws Exception\InvalidType
      */
     protected function parseAnnotationList(array $annotationList, $propertyName)
     {
         $parsedAnnotations = array();
         $type = null;
 
-        // Note: First scan through the annotation list to filter and add required fields.
+        // First scan through the annotation list to filter and add required fields.
         foreach ($annotationList as $annotation) {
-
-            // Note: Split on spaces.
             /** @var array $splitAnnotations */
             $splitAnnotations = preg_split('/\s/', $annotation);
 
-            if (in_array('@var', $splitAnnotations) && !$type) {
-                // Note: PHP DOC dictates that it will be in the form 0-VAR 1-TYPE 2-NAME 3-DESCRIPTION.
+            if (in_array("@var", $splitAnnotations) && !$type) {
+                // PHP DOC dictates that it will be in the form 0-VAR 1-TYPE 2-NAME 3-DESCRIPTION.
                 if (isset($splitAnnotations[1]) && $splitAnnotations[1][0] != "$") {
                     $type = $splitAnnotations[1];
                 }
-            } else if (in_array('@required', $splitAnnotations)) {
+            } else if (in_array("@required", $splitAnnotations)) {
                 $this->required[] = $propertyName;
             } else {
                 $parsedAnnotations[] = $annotation;
@@ -96,7 +98,7 @@ class Object extends BaseType implements TypeInterface
         }
 
         if ($type === null) {
-            throw new Exceptions\InvalidTypeException("Type is not defined");
+            throw new Exception\InvalidType("Type is not defined");
         }
 
         $nullable = false;
@@ -140,7 +142,7 @@ class Object extends BaseType implements TypeInterface
                 // Note: Attempt to match the type of array.
                 preg_match('/(.)*[^\[\s\]]/', $type, $arrayType);
                 if (!isset($arrayType[0])) {
-                    throw new Exceptions\InvalidTypeException("Need to provide a valid array type.");
+                    throw new Exception\InvalidTypeException("Need to provide a valid array type.");
                 }
 
                 // Note: Don't want to recurse infinitely.
@@ -156,7 +158,7 @@ class Object extends BaseType implements TypeInterface
                 } else if (in_array($arrayType[0], $basicDataTypes)) {
                     $property = new ArrayType($arrayType[0], $parsedAnnotations);
                 } else {
-                    throw new Exceptions\InvalidTypeException("Type {$arrayType[0]} is not recognized.");
+                    throw new Exception\InvalidTypeException("Type {$arrayType[0]} is not recognized.");
                 }
 
                 $this->addToProperties($nullable, $propertyName, $property);
@@ -170,7 +172,7 @@ class Object extends BaseType implements TypeInterface
             default:
                 $namespace = $this->getFullNamespace($type);
                 if ($namespace === false) {
-                    throw new Exceptions\InvalidTypeException("Type {$type} not recognized.");
+                    throw new Exception\InvalidTypeException("Type {$type} not recognized.");
                 }
 
                 $property = null;
@@ -207,7 +209,7 @@ class Object extends BaseType implements TypeInterface
 
     /**
      * @param string $type
-     * @return false|string $fullNamespace
+     * @return string|false $fullNamespace
      */
     private function getFullNamespace($type)
     {
@@ -232,26 +234,25 @@ class Object extends BaseType implements TypeInterface
      */
     public function jsonSerialize()
     {
-        $serializableArray = array();
-        $serializableArray["type"] = "object";
+        $schema = array();
+        $schema["type"] = "object";
 
         if ($this->title !== null) {
-            $serializableArray["title"] = $this->title;
+            $schema["title"] = $this->title;
         }
 
         if ($this->description !== null) {
-            $serializableArray["description"] = $this->description;
+            $schema["description"] = $this->description;
         }
 
         if ($this->properties !== null) {
-            $serializableArray["properties"] = $this->properties;
+            $schema["properties"] = $this->properties;
         }
 
         if ($this->required !== null) {
-            $serializableArray["required"] = $this->required;
+            $schema["required"] = $this->required;
         }
 
-        return $serializableArray;
+        return $schema;
     }
-
 }

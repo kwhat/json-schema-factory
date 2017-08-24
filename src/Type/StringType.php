@@ -1,10 +1,10 @@
 <?php
 
-namespace JsonSchema;
+namespace JsonSchema\Type;
 
 use JsonSchema\Exception;
 
-class String implements TypeInterface
+class StringType implements TypeInterface
 {
     /** @var int|null $minLength */
     private $minLength;
@@ -25,6 +25,7 @@ class String implements TypeInterface
 
     /**
      * @param array $properties
+     *
      * @throws Exception\InvalidTypeException
      * @throws Exception\AnnotationNotFound
      */
@@ -34,11 +35,13 @@ class String implements TypeInterface
             // TODO Check to see if preg split actually succeeded.
             $parsedProperty = preg_split('/\s/', $property);
             if (!isset($parsedProperty[0])) {
-                throw new Exceptions\InvalidTypeException("Need to provide a keyword to the annotation.");
+                throw new Exception\InvalidTypeException("Need to provide a keyword to the annotation.");
             }
+
             if (!isset($parsedProperty[1])) {
-                throw new Exceptions\InvalidTypeException("Need to provide a value to the annotation keyword.");
+                throw new Exception\InvalidTypeException("Need to provide a value to the annotation keyword.");
             }
+
             $annotationKeyword = $parsedProperty[0];
             $annotationValue = $parsedProperty[1];
 
@@ -69,7 +72,7 @@ class String implements TypeInterface
                     break;
 
                 default:
-                    throw new Exceptions\AnnotationNotFound("Annotation {$annotationKeyword} not recognized.");
+                    throw new Exception\AnnotationNotFound("Annotation {$annotationKeyword} not recognized.");
             }
         }
     }

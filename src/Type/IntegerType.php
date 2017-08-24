@@ -1,10 +1,11 @@
 <?php
 
-namespace Json\Schema;
+namespace JsonSchema\Type;
 
-use Json\Schema\Exceptions;
+use JsonSchema\Exception;
+use JsonSchema\TypeInterface;
 
-class Number implements TypeInterface
+class IntegerType implements TypeInterface
 {
     /** @var int $multipleOf */
     private $multipleOf;
@@ -21,6 +22,7 @@ class Number implements TypeInterface
     /** @var bool $exclusiveMinimum */
     private $exclusiveMinimum;
 
+
     /**
      * @param array $properties
      */
@@ -31,20 +33,22 @@ class Number implements TypeInterface
 
     /**
      * @param array $properties
-     * @throws Exceptions\InvalidTypeException
-     * @throws Exceptions\AnnotationNotFound
+     * 
+     * @throws Exception\InvalidType
+     * @throws Exception\AnnotationNotFound
      */
     protected function processProperties(array $properties)
     {
-        foreach($properties as $property)
-        {
+        foreach($properties as $property) {
             $parsedProperty = preg_split('/\s/', $property);
-            if (!isset($parsedProperty[0])) {
-                throw new Exceptions\InvalidTypeException("Need to provide a keyword to the annotation.");
+            if (! isset($parsedProperty[0])) {
+                throw new Exception\InvalidType("Need to provide a keyword to the annotation.");
             }
-            if (!isset($parsedProperty[1])) {
-                throw new Exceptions\InvalidTypeException("Need to provide a value to the annotation keyword.");
+
+            if (! isset($parsedProperty[1])) {
+                throw new Exception\InvalidType("Need to provide a value to the annotation keyword.");
             }
+
             $annotationKeyword = $parsedProperty[0];
             $annotationValue = $parsedProperty[1];
             switch ($annotationKeyword)
@@ -70,7 +74,7 @@ class Number implements TypeInterface
                     break;
 
                 default:
-                    throw new Exceptions\AnnotationNotFound("Annotation {$annotationKeyword} not recognized.");
+                    throw new Exception\AnnotationNotFound("Annotation {$annotationKeyword} not recognized.");
             }
         }
     }
@@ -81,18 +85,19 @@ class Number implements TypeInterface
     public function jsonSerialize()
     {
         $serializableArray = array();
-        $serializableArray["type"] = "number";
+
+        $serializableArray["type"] = "integer";
 
         if ($this->multipleOf !== null) {
             $serializableArray["multipleOf"] = $this->multipleOf;
         }
 
-        if ($this->maximum !== null) {
-            $serializableArray["maximum"] = $this->maximum;
-        }
-
         if ($this->minimum !== null) {
             $serializableArray["minimum"] = $this->minimum;
+        }
+
+        if ($this->maximum !== null) {
+            $serializableArray["maximum"] = $this->maximum;
         }
 
         if ($this->exclusiveMinimum !== null) {

@@ -2,9 +2,9 @@
 
 namespace JsonSchema;
 
-use JsonSchema\Exceptions;
+use Json\Schema\Exceptions;
 
-class IntegerType implements TypeInterface
+class Number implements TypeInterface
 {
     /** @var int $multipleOf */
     private $multipleOf;
@@ -21,7 +21,6 @@ class IntegerType implements TypeInterface
     /** @var bool $exclusiveMinimum */
     private $exclusiveMinimum;
 
-
     /**
      * @param array $properties
      */
@@ -32,8 +31,9 @@ class IntegerType implements TypeInterface
 
     /**
      * @param array $properties
-     * @throws Exceptions\InvalidTypeException
-     * @throws Exceptions\AnnotationNotFound
+     * 
+     * @throws Exception\InvalidTypeException
+     * @throws Exception\AnnotationNotFound
      */
     protected function processProperties(array $properties)
     {
@@ -41,10 +41,10 @@ class IntegerType implements TypeInterface
         {
             $parsedProperty = preg_split('/\s/', $property);
             if (!isset($parsedProperty[0])) {
-                throw new Exceptions\InvalidTypeException("Need to provide a keyword to the annotation.");
+                throw new Exception\InvalidType("Need to provide a keyword to the annotation.");
             }
             if (!isset($parsedProperty[1])) {
-                throw new Exceptions\InvalidTypeException("Need to provide a value to the annotation keyword.");
+                throw new Exception\InvalidType("Need to provide a value to the annotation keyword.");
             }
             $annotationKeyword = $parsedProperty[0];
             $annotationValue = $parsedProperty[1];
@@ -71,7 +71,7 @@ class IntegerType implements TypeInterface
                     break;
 
                 default:
-                    throw new Exceptions\AnnotationNotFound("Annotation {$annotationKeyword} not recognized.");
+                    throw new Exception\AnnotationNotFound("Annotation {$annotationKeyword} not recognized.");
             }
         }
     }
@@ -82,19 +82,18 @@ class IntegerType implements TypeInterface
     public function jsonSerialize()
     {
         $serializableArray = array();
-
-        $serializableArray["type"] = "integer";
+        $serializableArray["type"] = "number";
 
         if ($this->multipleOf !== null) {
             $serializableArray["multipleOf"] = $this->multipleOf;
         }
 
-        if ($this->minimum !== null) {
-            $serializableArray["minimum"] = $this->minimum;
-        }
-
         if ($this->maximum !== null) {
             $serializableArray["maximum"] = $this->maximum;
+        }
+
+        if ($this->minimum !== null) {
+            $serializableArray["minimum"] = $this->minimum;
         }
 
         if ($this->exclusiveMinimum !== null) {

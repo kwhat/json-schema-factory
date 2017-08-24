@@ -2,7 +2,7 @@
 
 namespace JsonSchema;
 
-class BaseType
+abstract class AbstractCollection implements TypeInterface
 {
     /** @var string|null $title */
     protected $title;
