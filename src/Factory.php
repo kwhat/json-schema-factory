@@ -8,19 +8,16 @@ class Factory
      * @param string $class
      * @param string|null $title
      * @param string|null $description
-     * @throws Exception\InvalidClassName
+     *
      * @return ArrayType|ObjectType
+     * @throws Exception\InvalidClassName
      */
     public static function create($class, $title = null, $description = null)
     {
-        if (! class_exists($class)) {
-            throw new Exception\InvalidClassName("Class {$class} is not a valid class name.");
-        }
-
         if (preg_match('/[\[](\s)*[\]]$/', $class) !== false) {
-            $schema = new ArrayType($class);
+            $schema = new Collection\ArrayList($class);
         } else {
-            $schema = new ObjectType($class);
+            $schema = new Collection($class);
         }
 
         $schema->setTitle($title);

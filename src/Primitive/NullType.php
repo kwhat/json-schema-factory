@@ -1,6 +1,6 @@
 <?php
 
-namespace Json\Schema;
+namespace JsonSchema\Primitive;
 
 class NullType implements TypeInterface
 {

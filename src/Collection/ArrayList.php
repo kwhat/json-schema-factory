@@ -8,24 +8,26 @@ use JsonSchema\Exception;
 class ArrayList extends AbstractCollection
 {
     /** @var bool $additionalItems */
-    private $additionalItems;
+    protected $additionalItems;
 
     /** @var array $items */
-    private $items;
+    protected $items;
 
     /** @var int $minItems */
-    private $minItems;
+    protected $minItems;
 
     /** @var int $maxItems */
-    private $maxItems;
+    protected $maxItems;
 
     /** @var bool $uniqueItems */
-    private $uniqueItems;
+    protected $uniqueItems;
 
     public function __construct($class, array $properties = null)
     {
+        $this->additionalItems = false;
+        
         $type = array();
-        if (preg_match('/(.)*[^\[\s\]]/', $class, $type) !== false) {
+        if (preg_match('/(.*)[^\[\s\]]/', $class, $type) !== false) {
             switch ($type[0]) {
                 case "int":
                 case "integer":
@@ -50,6 +52,8 @@ class ArrayList extends AbstractCollection
                     $this->items = new ObjectMap($type[0]);
             }
         }
+
+        $this->uniqueItems = false;
 
         if ($properties != null) {
             $this->processProperties($properties);
@@ -94,7 +98,7 @@ class ArrayList extends AbstractCollection
                     break;
 
                 default:
-                    throw new Exception\AnnotationNotFound("Annotation {$annotationKeyword} not recognized.");
+                    throw new Exception\AnnotationNotFound("Annotation {$annotationKeyword} not supported.");
             }
         }
     }
@@ -115,12 +119,14 @@ class ArrayList extends AbstractCollection
             $schema["description"] = $this->description;
         }
 
-        if ($this->additionalItems !== null) {
-            $schema["additionalItems"] = $this->additionalItems;
-        }
-
         if ($this->items !== null) {
             $schema["items"] = $this->items;
+
+            // Single elements will have type set while arrays will have a list of associative arrays with type set.
+            if (! isset($this->items["type"])) {
+                // Additional items should not be used unless there are multipul types.
+                $schema["additionalItems"] = $this->additionalItems;
+            }
         }
 
         if ($this->minItems !== null) {
@@ -131,7 +137,7 @@ class ArrayList extends AbstractCollection
             $schema["maxItems"] = $this->maxItems;
         }
 
-        $schema["uniqueItems"] = true;
+        $schema["uniqueItems"] = $this->uniqueItems;
         return $schema;
     }
 }

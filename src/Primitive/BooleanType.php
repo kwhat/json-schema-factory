@@ -1,6 +1,6 @@
 <?php
 
-namespace JsonSchema;
+namespace JsonSchema\Primitive;
 
 class BooleanType implements TypeInterface
 {

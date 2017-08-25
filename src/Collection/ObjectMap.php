@@ -6,64 +6,70 @@ use Doctrine\Common\Reflection;
 use JsonSchema\AbstractCollection;
 use JsonSchema\Doctrine;
 use JsonSchema\Exception;
+use JsonSchema\Primitive;
 use ReflectionClass;
 use ReflectionProperty;
 
 class ObjectMap extends AbstractCollection
 {
-    /** @var array $properties */
-    private $properties;
+    /** @var string $namespace */
+    protected $namespace;
 
-    /** @var string $nameSpace */
-    private $namespace;
+    /** @var string $class */
+    protected $class;
+
+    /** @var array $imports */
+    protected $imports;
+    
+    /** @var array $properties */
+    protected $properties;
 
     /** @var array $required */
-    private $required;
-
-    /** @var string $className */
-    private $className;
-
-    /** @var array $useStatements */
-    private $useStatements;
+    protected $required;
 
     /**
      * @param string $class
+     *
+     * @throws Exception\InvalidClassName
      */
     public function __construct($class)
     {
+        try {
+            $reflectionClass = new ReflectionClass($class);
+        } catch (ReflectionException $e) {
+            throw new Exception\InvalidClassName($e->getMessage(), $e->getCode(), $e);
+        }
+
         $classFinder = new Doctrine\AutoloadClassFinder();
-        $reflectionClass = new ReflectionClass($class);
         $reflectionParser = new Reflection\StaticReflectionParser($reflectionClass->getName(), $classFinder);
 
-        $propertyList = $reflectionClass->getProperties(ReflectionProperty::IS_PUBLIC);
+        $properties = $reflectionClass->getProperties(ReflectionProperty::IS_PUBLIC);
 
         $this->properties = array();
         $this->required = array();
         $this->namespace = $reflectionClass->getNamespaceName();
-        $this->className = $reflectionClass->getShortName();
-        $this->useStatements = $reflectionParser->getUseStatements();
+        $this->class = $reflectionClass->getShortName();
+        $this->imports = $reflectionParser->getUseStatements();
 
-        $this->processProperties($propertyList);
+        $this->processProperties($properties);
     }
 
     /**
-     * @param array $propertyList
+     * @param array $properties
      *
      * @throws Exception\AnnotationNotFound
      */
-    protected function processProperties(array $propertyList)
+    protected function processProperties(array $properties)
     {
-        $annotationList = array();
+        $annotations = array();
 
         /** @var ReflectionProperty $property */
-        foreach ($propertyList as $property) {
+        foreach ($properties as $property) {
             // For each property go through and pull it's doc comment that fits the regex.
-            $regexSuccess = preg_match_all('/\@\w+(.)*/', $property->getDocComment(), $annotationList);
-            if ($regexSuccess) {
-                $annotationsForParsing = $annotationList[0];
-                $propertyName = $property->getName();
+            $success = preg_match_all('/\@\w+(.)*/', $property->getDocComment(), $annotations);
+            if ($success !== false) {
                 // Parse the line that we matched.
-                $this->parseAnnotationList($annotationsForParsing, $propertyName);
+                $this->parseAnnotations($annotations[0], $property->getName());
             }
         }
     }
@@ -74,7 +80,7 @@ class ObjectMap extends AbstractCollection
      * 
      * @throws Exception\InvalidType
      */
-    protected function parseAnnotationList(array $annotationList, $propertyName)
+    protected function parseAnnotations(array $annotationList, $propertyName)
     {
         $parsedAnnotations = array();
         $type = null;
@@ -98,7 +104,7 @@ class ObjectMap extends AbstractCollection
         }
 
         if ($type === null) {
-            throw new Exception\InvalidType("Type is not defined");
+            throw new Exception\InvalidType("Primitive is not defined");
         }
 
         $nullable = false;
@@ -113,24 +119,24 @@ class ObjectMap extends AbstractCollection
 
         switch($type) {
             case "string":
-                $property = new StringType($parsedAnnotations);
+                $property = new Primitive\StringType($parsedAnnotations);
                 $this->addToProperties($nullable, $propertyName, $property);
                 break;
 
             case "int":
             case "integer":
-                $property = new IntegerType($parsedAnnotations);
+                $property = new Primitive\IntegerType($parsedAnnotations);
                 $this->addToProperties($nullable, $propertyName, $property);
                 break;
 
             case "float":
-                $property = new NumberType($parsedAnnotations);
+                $property = new Primitive\NumberType($parsedAnnotations);
                 $this->addToProperties($nullable, $propertyName, $property);
                 break;
 
             case "bool":
             case "boolean":
-                $property = new BooleanType();
+                $property = new Primitive\BooleanType();
                 $this->addToProperties($nullable, $propertyName, $property);
                 break;
 
@@ -140,13 +146,13 @@ class ObjectMap extends AbstractCollection
                 $property = null;
 
                 // Note: Attempt to match the type of array.
-                preg_match('/(.)*[^\[\s\]]/', $type, $arrayType);
-                if (!isset($arrayType[0])) {
-                    throw new Exception\InvalidTypeException("Need to provide a valid array type.");
+                preg_match('/(.)+[^\[\s\]]/', $type, $arrayType);
+                if (! isset($arrayType[0])) {
+                    throw new Exception\InvalidType("Need to provide a valid array type.");
                 }
 
-                // Note: Don't want to recurse infinitely.
-                if ($arrayType[0] == $this->className) {
+                // Prevent infinite recursion.
+                if ($arrayType[0] == $this->class) {
                     $property = array(
                         "type" => "array",
                         "items" => array(
@@ -154,32 +160,32 @@ class ObjectMap extends AbstractCollection
                         )
                     );
                 } else if (($namespace = $this->getFullNamespace($arrayType[0])) !== false) {
-                    $property = new ArrayType($namespace, $parsedAnnotations);
+                    $property = new ArrayList($namespace, $parsedAnnotations);
                 } else if (in_array($arrayType[0], $basicDataTypes)) {
-                    $property = new ArrayType($arrayType[0], $parsedAnnotations);
+                    $property = new ArrayList($arrayType[0], $parsedAnnotations);
                 } else {
-                    throw new Exception\InvalidTypeException("Type {$arrayType[0]} is not recognized.");
+                    throw new Exception\InvalidType("Primitive {$arrayType[0]} is not recognized.");
                 }
 
                 $this->addToProperties($nullable, $propertyName, $property);
                 break;
 
             case "null":
-                $property = new NullType();
+                $property = new Primitive\NullType();
                 $this->properties[$propertyName] = $property;
                 break;
 
             default:
                 $namespace = $this->getFullNamespace($type);
                 if ($namespace === false) {
-                    throw new Exception\InvalidTypeException("Type {$type} not recognized.");
+                    throw new Exception\InvalidType("Primitive {$type} not recognized.");
                 }
 
                 $property = null;
-                if ($type === $this->className) {
+                if ($type === $this->class) {
                     $property = array("\$ref" => "#");
                 } else {
-                    $property = new ObjectType($namespace);
+                    $property = new ObjectMap($namespace);
                 }
 
                 $this->addToProperties($nullable, $propertyName, $property);
@@ -218,7 +224,7 @@ class ObjectMap extends AbstractCollection
         if (class_exists("\\" . $this->namespace . "\\" . $type)) {
             $fullNamespace = "\\" . $this->namespace . "\\" . $type;
         } else {
-            foreach($this->useStatements as $useStatement) {
+            foreach($this->imports as $useStatement) {
                 if (class_exists($useStatement . "\\" . $type)) {
                     $fullNamespace = $useStatement . "\\" . $type;
                     break;

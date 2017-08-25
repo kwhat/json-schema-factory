@@ -1,6 +1,6 @@
 <?php
 
-namespace JsonSchema\Type;
+namespace JsonSchema\Primitive;
 
 use JsonSchema\Exception;
 
@@ -45,8 +45,7 @@ class StringType implements TypeInterface
             $annotationKeyword = $parsedProperty[0];
             $annotationValue = $parsedProperty[1];
 
-            switch ($annotationKeyword)
-            {
+            switch ($annotationKeyword) {
                 case "@minLength":
                     $this->minLength = (int) $annotationValue;
                     break;
@@ -57,7 +56,7 @@ class StringType implements TypeInterface
                     foreach ($enumList as $enum) {
                         // Results from the regex, if successful, will be stored in the array index zero.
                         $match = array();
-                        if (preg_match('/[^\,\s]+/', $enum, $match)) {
+                        if (preg_match('/[^\,\s]+/', $enum, $match) !== false) {
                             $this->enum[] = $match[0];
                         }
                     }
