@@ -2,6 +2,8 @@
 
 namespace JsonSchema\Primitive;
 
+use JsonSchema\TypeInterface;
+
 class NullType implements TypeInterface
 {
     /**

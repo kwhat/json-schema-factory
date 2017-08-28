@@ -3,6 +3,7 @@
 namespace JsonSchema\Primitive;
 
 use JsonSchema\Exception;
+use JsonSchema\TypeInterface;
 
 class StringType implements TypeInterface
 {

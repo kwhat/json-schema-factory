@@ -5,7 +5,7 @@ namespace JsonSchema\Doctrine;
 use Doctrine\Common\Reflection;
 use ReflectionClass;
 
-class AutoloadFinder implements Reflection\ClassFinderInterface
+class AutoloadClassFinder implements Reflection\ClassFinderInterface
 {
     /**
      * @param string $class

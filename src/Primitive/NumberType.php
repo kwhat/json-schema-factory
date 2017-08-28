@@ -2,7 +2,8 @@
 
 namespace JsonSchema\Primitive;
 
-use JsonSchema\Exceptions;
+use JsonSchema\Exception;
+use JsonSchema\TypeInterface;
 
 class Number implements TypeInterface
 {
