@@ -14,14 +14,15 @@ class Factory
      */
     public static function create($class, $title = null, $description = null)
     {
-        if (preg_match('/[\[](\s)*[\]]$/', $class) !== false) {
+        if (preg_match('/[\[](\s)*[\]]$/', $class)) {
             $schema = new Collection\ArrayList($class);
         } else {
-            $schema = new Collection($class);
+            $schema = new Collection\ObjectMap($class);
         }
 
         $schema->setTitle($title);
         $schema->setDescription($description);
+
         return $schema;
     }
 }

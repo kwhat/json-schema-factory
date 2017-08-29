@@ -117,7 +117,7 @@ class ObjectMap extends AbstractCollection
 
         $basicDataTypes = array("string", "int", "integer", "float", "bool", "boolean", "null");
 
-        switch($type) {
+        switch ($type) {
             case "string":
                 $property = new Primitive\StringType($parsedAnnotations);
                 $this->addToProperties($nullable, $propertyName, $property);
