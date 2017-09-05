@@ -19,42 +19,35 @@ class StringType implements TypeInterface
     /** @var string|null $pattern */
     private $pattern;
     
-    public function __construct($properties)
+    public function __construct(array $annotations = null)
     {
-        $this->processproperties($properties);
+        if ($annotations != null) {
+            $this->parseAnnotations($annotations);
+        }
     }
 
     /**
-     * @param array $properties
+     * @param array $annotations
      *
-     * @throws Exception\InvalidTypeException
+     * @throws Exception\InvalidType
      * @throws Exception\AnnotationNotFound
      */
-    protected function processProperties(array $properties)
+    protected function parseAnnotations(array $annotations)
     {
-        foreach ($properties as $property) {
-            // TODO Check to see if preg split actually succeeded.
-            $parsedProperty = preg_split('/\s/', $property);
-            if (!isset($parsedProperty[0])) {
-                throw new Exception\InvalidTypeException("Need to provide a keyword to the annotation.");
+        foreach ($annotations as $annotation) {
+            $parts = preg_split('/\s/', $annotation);
+            if (! isset($parts[0]) || ! isset($parts[1])) {
+                throw new Exception\InvalidType("Invalid annotation format.");
             }
 
-            if (!isset($parsedProperty[1])) {
-                throw new Exception\InvalidTypeException("Need to provide a value to the annotation keyword.");
-            }
+            $keyword = $parts[0];
+            $value = $parts[1];
 
-            $annotationKeyword = $parsedProperty[0];
-            $annotationValue = $parsedProperty[1];
-
-            switch ($annotationKeyword) {
-                case "@minLength":
-                    $this->minLength = (int) $annotationValue;
-                    break;
-
+            switch ($keyword) {
                 case "@enum":
                     $this->enum = array();
-                    $enumList = array_slice($parsedProperty, 1);
-                    foreach ($enumList as $enum) {
+                    $enums = array_slice($parts, 1);
+                    foreach ($enums as $enum) {
                         // Results from the regex, if successful, will be stored in the array index zero.
                         $match = array();
                         if (preg_match('/[^\,\s]+/', $enum, $match) !== false) {
@@ -63,16 +56,20 @@ class StringType implements TypeInterface
                     }
                     break;
 
+                case "@minLength":
+                    $this->minLength = (int) $value;
+                    break;
+
                 case "@maxLength":
-                    $this->maxLength = (int) $annotationValue;
+                    $this->maxLength = (int) $value;
                     break;
 
                 case "@pattern":
-                    $this->pattern = (string) $annotationValue;
+                    $this->pattern = (string) $value;
                     break;
 
                 default:
-                    throw new Exception\AnnotationNotFound("Annotation {$annotationKeyword} not recognized.");
+                    throw new Exception\AnnotationNotFound("Annotation {$keyword} not recognized.");
             }
         }
     }
@@ -82,25 +79,26 @@ class StringType implements TypeInterface
      */
     public function jsonSerialize()
     {
-        $serializableArray = array();
-        $serializableArray["type"] = "string";
+        $schema = array(
+            "type" => "string"
+        );
 
         if ($this->minLength !== null) {
-            $serializableArray["minLength"] = $this->minLength;
+            $schema["minLength"] = $this->minLength;
         }
 
         if ($this->maxLength !== null) {
-            $serializableArray["maxLength"] = $this->maxLength;
+            $schema["maxLength"] = $this->maxLength;
         }
 
         if ($this->enum !== null) {
-            $serializableArray["enum"] = $this->enum;
+            $schema["enum"] = $this->enum;
         }
 
         if ($this->pattern !== null) {
-            $serializableArray["pattern"] = $this->pattern;
+            $schema["pattern"] = $this->pattern;
          }
 
-        return $serializableArray;
+        return $schema;
     }
 }

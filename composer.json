@@ -1,8 +1,8 @@
 {
-    "name": "aicconsultinginc/Bildr-JsonSchema",
+    "name": "kwhat/JsonSchema",
     "type": "library",
     "description": "JSON Schema Generator.",
-    "license": "unknown",
+    "license": "LGPL-3.0",
     "authors": [
         {
             "name": "Alex Barker",
@@ -32,14 +32,5 @@
         "psr-4": {
             "JsonSchema\\Test\\": "tests"
         }
-    },
-    "config": {
-        "secure-http": false
-    },
-    "repositories": [
-        {
-            "type": "composer",
-            "url": "http://packages.bildr.io"
-        }
-    ]
+    }
 }

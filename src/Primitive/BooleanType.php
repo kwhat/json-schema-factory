@@ -11,7 +11,10 @@ class BooleanType implements TypeInterface
      */
     public function jsonSerialize()
     {
-        $schema = array("type" => "boolean");
+        $schema = array(
+            "type" => "boolean"
+        );
+
         return $schema;
     }
 }

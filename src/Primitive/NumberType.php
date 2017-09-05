@@ -7,72 +7,72 @@ use JsonSchema\TypeInterface;
 
 class Number implements TypeInterface
 {
-    /** @var int $multipleOf */
-    private $multipleOf;
-
     /** @var int $maximum */
-    private $maximum;
+    protected $maximum;
 
     /** @var int $minimum */
-    private $minimum;
+    protected $minimum;
+
+    /** @var int $multipleOf */
+    protected $multipleOf;
 
     /** @var bool $exclusiveMaximum */
-    private $exclusiveMaximum;
+    protected $exclusiveMaximum;
 
     /** @var bool $exclusiveMinimum */
-    private $exclusiveMinimum;
+    protected $exclusiveMinimum;
 
     /**
-     * @param array $properties
+     * @param array $annotations
      */
-    public function __construct(array $properties)
+    public function __construct(array $annotations = null)
     {
-        $this->processProperties($properties);
+        if ($annotations != null) {
+            $this->parseAnnotations($annotations);
+        }
     }
 
     /**
-     * @param array $properties
+     * @param array $annotations
      * 
-     * @throws Exception\InvalidTypeException
+     * @throws Exception\InvalidType
      * @throws Exception\AnnotationNotFound
      */
-    protected function processProperties(array $properties)
+    protected function parseAnnotations(array $annotations)
     {
-        foreach($properties as $property)
+        foreach($annotations as $annotation)
         {
-            $parsedProperty = preg_split('/\s/', $property);
-            if (!isset($parsedProperty[0])) {
-                throw new Exception\InvalidType("Need to provide a keyword to the annotation.");
+            $parts = preg_split('/\s/', $annotation);
+            if (! isset($parts[0]) || ! isset($parts[1])) {
+                throw new Exception\InvalidType("Invalid annotation format.");
             }
-            if (!isset($parsedProperty[1])) {
-                throw new Exception\InvalidType("Need to provide a value to the annotation keyword.");
-            }
-            $annotationKeyword = $parsedProperty[0];
-            $annotationValue = $parsedProperty[1];
-            switch ($annotationKeyword)
+
+            $keyword = $parts[0];
+            $value = $parts[1];
+            switch ($keyword)
             {
-                case "@multipleOf":
-                    $this->multipleOf = (int) $annotationValue;
-                    break;
-
-                case "@minimum":
-                    $this->maximum = (int) $annotationValue;
-                    break;
-
-                case "@maximum":
-                    $this->minimum = (int) $annotationValue;
-                    break;
-
                 case "@exclusiveMinimum":
-                    $this->exclusiveMinimum = (bool) $annotationValue;
+                    $this->exclusiveMinimum = (bool) $value;
                     break;
 
                 case "@exclusiveMaximum":
-                    $this->exclusiveMaximum = (bool) $annotationValue;
+                    $this->exclusiveMaximum = (bool) $value;
+                    break;
+
+                case "@maximum":
+                    $this->maximum = (int) $value;
+                    break;
+
+                case "@minimum":
+                    $this->minimum = (int) $value;
+                    break;
+
+                case "@multipleOf":
+                    $this->multipleOf = (int) $value;
                     break;
 
                 default:
-                    throw new Exception\AnnotationNotFound("Annotation {$annotationKeyword} not recognized.");
+                    throw new Exception\AnnotationNotFound("Annotation {$keyword} not recognized.");
             }
         }
     }
@@ -82,29 +82,30 @@ class Number implements TypeInterface
      */
     public function jsonSerialize()
     {
-        $serializableArray = array();
-        $serializableArray["type"] = "number";
+        $schema = array(
+            "type" => "number"
+        );
 
         if ($this->multipleOf !== null) {
-            $serializableArray["multipleOf"] = $this->multipleOf;
+            $schema["multipleOf"] = $this->multipleOf;
         }
 
         if ($this->maximum !== null) {
-            $serializableArray["maximum"] = $this->maximum;
+            $schema["maximum"] = $this->maximum;
         }
 
         if ($this->minimum !== null) {
-            $serializableArray["minimum"] = $this->minimum;
+            $schema["minimum"] = $this->minimum;
         }
 
         if ($this->exclusiveMinimum !== null) {
-            $serializableArray["exclusiveMinimum"] = $this->exclusiveMinimum;
+            $schema["exclusiveMinimum"] = $this->exclusiveMinimum;
         }
 
         if ($this->exclusiveMaximum !== null) {
-            $serializableArray["exclusiveMaximum"] = $this->exclusiveMaximum;
+            $schema["exclusiveMaximum"] = $this->exclusiveMaximum;
         }
 
-        return $serializableArray;
+        return $schema;
     }
 }

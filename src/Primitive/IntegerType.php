@@ -24,57 +24,54 @@ class IntegerType implements TypeInterface
 
 
     /**
-     * @param array $properties
+     * @param array $annotations
      */
-    public function __construct(array $properties)
+    public function __construct(array $annotations = null)
     {
-        $this->processProperties($properties);
+        if ($annotations != null) {
+            $this->parseAnnotations($annotations);
+        }
     }
 
     /**
-     * @param array $properties
+     * @param array $annotations
      * 
      * @throws Exception\InvalidType
      * @throws Exception\AnnotationNotFound
      */
-    protected function processProperties(array $properties)
+    protected function parseAnnotations(array $annotations)
     {
-        foreach($properties as $property) {
-            $parsedProperty = preg_split('/\s/', $property);
-            if (! isset($parsedProperty[0])) {
-                throw new Exception\InvalidType("Need to provide a keyword to the annotation.");
+        foreach($annotations as $annotation) {
+            $parts = preg_split('/\s/', $annotation);
+            if (! isset($parts[0]) || ! isset($parts[1])) {
+                throw new Exception\InvalidType("Invalid annotation format.");
             }
 
-            if (! isset($parsedProperty[1])) {
-                throw new Exception\InvalidType("Need to provide a value to the annotation keyword.");
-            }
-
-            $annotationKeyword = $parsedProperty[0];
-            $annotationValue = $parsedProperty[1];
-            switch ($annotationKeyword)
-            {
+            $keyword = $parts[0];
+            $value = $parts[1];
+            switch ($keyword) {
                 case "@multipleOf":
-                    $this->multipleOf = (int) $annotationValue;
+                    $this->multipleOf = (int) $value;
                     break;
 
                 case "@minimum":
-                    $this->maximum = (int) $annotationValue;
+                    $this->maximum = (int) $value;
                     break;
 
                 case "@maximum":
-                    $this->minimum = (int) $annotationValue;
+                    $this->minimum = (int) $value;
                     break;
 
                 case "@exclusiveMinimum":
-                    $this->exclusiveMinimum = (bool) $annotationValue;
+                    $this->exclusiveMinimum = (bool) $value;
                     break;
 
                 case "@exclusiveMaximum":
-                    $this->exclusiveMaximum = (bool) $annotationValue;
+                    $this->exclusiveMaximum = (bool) $value;
                     break;
 
                 default:
-                    throw new Exception\AnnotationNotFound("Annotation {$annotationKeyword} not recognized.");
+                    throw new Exception\AnnotationNotFound("Annotation {$keyword} not recognized.");
             }
         }
     }
@@ -84,30 +81,30 @@ class IntegerType implements TypeInterface
      */
     public function jsonSerialize()
     {
-        $serializableArray = array();
-
-        $serializableArray["type"] = "integer";
+        $schema = array(
+            "type" => "integer"
+        );
 
         if ($this->multipleOf !== null) {
-            $serializableArray["multipleOf"] = $this->multipleOf;
+            $schema["multipleOf"] = $this->multipleOf;
         }
 
         if ($this->minimum !== null) {
-            $serializableArray["minimum"] = $this->minimum;
+            $schema["minimum"] = $this->minimum;
         }
 
         if ($this->maximum !== null) {
-            $serializableArray["maximum"] = $this->maximum;
+            $schema["maximum"] = $this->maximum;
         }
 
         if ($this->exclusiveMinimum !== null) {
-            $serializableArray["exclusiveMinimum"] = $this->exclusiveMinimum;
+            $schema["exclusiveMinimum"] = $this->exclusiveMinimum;
         }
 
         if ($this->exclusiveMaximum !== null) {
-            $serializableArray["exclusiveMaximum"] = $this->exclusiveMaximum;
+            $schema["exclusiveMaximum"] = $this->exclusiveMaximum;
         }
 
-        return $serializableArray;
+        return $schema;
     }
 }

@@ -4,6 +4,7 @@ namespace JsonSchema\Collection;
 
 use JsonSchema\AbstractCollection;
 use JsonSchema\Exception;
+use stdClass;
 
 class ArrayList extends AbstractCollection
 {
@@ -22,13 +23,13 @@ class ArrayList extends AbstractCollection
     /** @var bool $uniqueItems */
     protected $uniqueItems;
 
-    public function __construct($class, array $properties = null)
+    public function __construct($class, array $annotations = null)
     {
         $this->additionalItems = false;
+        $this->uniqueItems = false;
         
-        $type = array();
-        if (preg_match('/(.*)[^\[\s\]]/', $class, $type) !== false) {
-            switch ($type[0]) {
+        if (preg_match('/(.*)[^\[\s\]]/', $class, $match) !== false) {
+            switch ($match[0]) {
                 case "int":
                 case "integer":
                     $this->items = array("type" => "integer");
@@ -45,60 +46,59 @@ class ArrayList extends AbstractCollection
 
                 case "string":
                 case "null":
-                    $this->items = array("type" => $type[0]);
+                    $this->items = array("type" => $match[0]);
+                    break;
+
+                case stdClass::class:
+                    $this->items = new HashTable($annotations);
                     break;
 
                 default:
-                    $this->items = new ObjectMap($type[0]);
+                    $this->items = new ObjectMap($match[0]);
             }
         }
 
-        $this->uniqueItems = false;
-
-        if ($properties != null) {
-            $this->processProperties($properties);
+        if ($annotations != null) {
+            $this->parseAnnotations($annotations);
         }
     }
 
     /**
-     * @param array $properties
+     * @param array $annotations
      *
      * @throws Exception\InvalidType
      * @throws Exception\AnnotationNotFound
      */
-    protected function processProperties(array $properties)
+    protected function parseAnnotations(array $annotations)
     {
-        foreach($properties as $property) {
-            $parsedProperty = preg_split('/\s/', $property);
-            if (! isset($parsedProperty[0])) {
-                throw new Exception\InvalidType("Need to provide a keyword to the annotation.");
+        foreach($annotations as $annotation) {
+            $parts = preg_split('/\s/', $annotation);
+            if (! isset($parts[0]) || ! isset($parts[1])) {
+                throw new Exception\InvalidType("Invalid annotation format.");
             }
 
-            if (! isset($parsedProperty[1])) {
-                throw new Exception\InvalidType("Need to provide a value to the annotation keyword.");
-            }
+            $keyword = $parts[0];
+            $value = $parts[1];
 
-            $annotationKeyword = $parsedProperty[0];
-            $annotationValue = $parsedProperty[1];
-            switch ($annotationKeyword) {
+            switch ($keyword) {
                 case "@additionalItems":
-                    $this->additionalItems = (bool) $annotationValue;
+                    $this->additionalItems = (bool) $value;
                     break;
 
                 case "@minItems":
-                    $this->minItems = (int) $annotationValue;
+                    $this->minItems = (int) $value;
                     break;
 
                 case "@maxItems":
-                    $this->maxItems = (int) $annotationValue;
+                    $this->maxItems = (int) $value;
                     break;
 
                 case "@uniqueItems":
-                    $this->uniqueItems = (bool) $annotationValue;
+                    $this->uniqueItems = (bool) $value;
                     break;
 
                 default:
-                    throw new Exception\AnnotationNotFound("Annotation {$annotationKeyword} not supported.");
+                    throw new Exception\AnnotationNotFound("Annotation {$keyword} not supported.");
             }
         }
     }
@@ -108,8 +108,9 @@ class ArrayList extends AbstractCollection
      */
     public function jsonSerialize()
     {
-        $schema = array();
-        $schema["type"] = "array";
+        $schema = array(
+            "type" => "array"
+        );
 
         if ($this->title !== null) {
             $schema["title"] = $this->title;
@@ -124,7 +125,7 @@ class ArrayList extends AbstractCollection
 
             // Single elements will have type set while arrays will have a list of associative arrays with type set.
             if (! isset($this->items["type"])) {
-                // Additional items should not be used unless there are multipul types.
+                // Additional items should not be used unless there are multiple types.
                 $schema["additionalItems"] = $this->additionalItems;
             }
         }
@@ -138,6 +139,7 @@ class ArrayList extends AbstractCollection
         }
 
         $schema["uniqueItems"] = $this->uniqueItems;
+
         return $schema;
     }
 }

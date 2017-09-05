@@ -10,17 +10,14 @@ use JsonSchema\Primitive;
 use ReflectionClass;
 use ReflectionProperty;
 
-class ObjectMap extends AbstractCollection
+class HashTable extends AbstractCollection
 {
     /** @var string $namespace */
     protected $namespace;
 
-    /** @var string $class */
-    protected $class;
+    /** @var string $pattern */
+    protected $pattern;
 
-    /** @var array $imports */
-    protected $imports;
-    
     /** @var array $properties */
     protected $properties;
 
@@ -28,108 +25,81 @@ class ObjectMap extends AbstractCollection
     protected $required;
 
     /**
-     * @param string $class
-     * @param array $annotations
-     *
-     * @throws Exception\InvalidClassName
+     * @param string[] $annotations
      */
-    public function __construct($class, array $annotations = [])
+    public function __construct(array $annotations)
     {
-        try {
-            $reflectionClass = new ReflectionClass($class);
-        } catch (ReflectionException $e) {
-            throw new Exception\InvalidClassName($e->getMessage(), $e->getCode(), $e);
-        }
-
-        $classFinder = new Doctrine\AutoloadClassFinder();
-        $reflectionParser = new Reflection\StaticReflectionParser($reflectionClass->getName(), $classFinder);
-
-        /** @var ReflectionProperty $property */
-        $properties = $reflectionClass->getProperties(ReflectionProperty::IS_PUBLIC);
-        foreach ($properties as $property) {
-            // For each property go through and pull it's doc comment that fits the regex.
-            $success = preg_match_all('/\@\w+(.)*/', $property->getDocComment(), $match);
-            if ($success !== false) {
-                // Parse the line that we matched.
-                $this->parseAnnotations($match[0], $property->getName());
-            }
-        }
-
         $this->properties = array();
-        $this->required = array();
-        $this->namespace = $reflectionClass->getNamespaceName();
-        $this->class = $reflectionClass->getShortName();
-        $this->imports = $reflectionParser->getUseStatements();
 
-        $this->parseAnnotations($annotations);
+        $this->parseAnnotations($annotations, $property->getName());
     }
 
     /**
+     * @param string $class
      * @param array $annotations
-     * @param string $propertyName
-     * 
+     *
      * @throws Exception\InvalidType
      */
-    protected function parseAnnotations(array $annotations, $propertyName)
+    protected function parseAnnotations(array $annotations = ["@pattern" => '[\w]+'])
     {
-        $nullable = false;
-        $unusedAnnotations = array();
         $type = null;
+        $required = false;
 
         // First scan through the annotation list to filter and add required fields.
         foreach ($annotations as $annotation) {
-            /** @var array $parts */
+            /** @var string[] $parts */
             $parts = preg_split('/\s/', $annotation);
-            if ($parts !== false) {
-                if ($parts[0] == "@var" && ! $type) {
-                    // PHP DOC states that it will be in the form of 0-VAR 1-TYPE 2-NAME 3-DESCRIPTION.
-                    if (isset($parts[1]) && $parts[1][0] != "$") {
-                        $type = $parts[1];
-                    }
-                } else if ($parts[0] == "@required") {
-                    $this->required[] = $propertyName;
-                } else if ($parts[0] == "@nullable") {
-                    $nullable = true;
-                } else {
-                    $unusedAnnotations[] = $annotation;
+
+            if ($parts[0] == "@pattern") {
+                if (isset($parts[1])) {
+                    $this->pattern = (string) $parts[1];
                 }
+            } else if ($parts[0] == "@generic" && ! $type) {
+                if (isset($parts[1])) {
+                    $type = $parts[1];
+                }
+            } else if ($parts[0] == "@required") {
+                $required = true;
             }
         }
 
         if ($type === null) {
-            throw new Exception\InvalidType("Primitive is not defined");
+            throw new Exception\AnnotationNotFound("HashTable generic not defined.");
         }
+
+        $primitives = array("string", "int", "integer", "float", "bool", "boolean", "null");
 
         switch ($type) {
             case "string":
-                $property = new Primitive\StringType($unusedAnnotations);
-                $this->addToProperties($nullable, $propertyName, $property);
+                $property = new Primitive\StringType($parsedAnnotations);
+                $this->addToProperties($required, $propertyName, $property);
                 break;
 
             case "int":
             case "integer":
-                $property = new Primitive\IntegerType($unusedAnnotations);
-                $this->addToProperties($nullable, $propertyName, $property);
+                $property = new Primitive\IntegerType($parsedAnnotations);
+                $this->addToProperties($required, $propertyName, $property);
                 break;
 
             case "float":
-                $property = new Primitive\NumberType($unusedAnnotations);
-                $this->addToProperties($nullable, $propertyName, $property);
+                $property = new Primitive\NumberType($parsedAnnotations);
+                $this->addToProperties($required, $propertyName, $property);
                 break;
 
             case "bool":
             case "boolean":
                 $property = new Primitive\BooleanType();
-                $this->addToProperties($nullable, $propertyName, $property);
+                $this->addToProperties($required, $propertyName, $property);
                 break;
 
-            // Match primitive and object array notation.
-            case (preg_match('/[\[](\s)*[\]]/$', $type) == 1):
+            // Match '[]' array notation.
+            case (preg_match('/[\[](\s)*[\]]/', $type) == 1):
                 $property = null;
 
+                // Attempt to match the type of array.
                 preg_match('/(.)+[^\[\s\]]/', $type, $match);
                 if (! isset($match[0])) {
-                    throw new Exception\InvalidType("Invalid array notation.");
+                    throw new Exception\InvalidType("Need to provide a valid array type.");
                 }
 
                 // Prevent infinite recursion.
@@ -141,14 +111,14 @@ class ObjectMap extends AbstractCollection
                         )
                     );
                 } else if (($namespace = $this->getFullNamespace($match[0])) !== false) {
-                    $property = new ArrayList($namespace, $unusedAnnotations);
-                } else if (in_array($match[0], array("string", "int", "integer", "float", "bool", "boolean"))) {
-                    $property = new ArrayList($match[0], $unusedAnnotations);
+                    $property = new ArrayList($namespace, $parsedAnnotations);
+                } else if (in_array($match[0], $primitives)) {
+                    $property = new ArrayList($match[0], $parsedAnnotations);
                 } else {
                     throw new Exception\InvalidType("{$match[0]} is not recognized.");
                 }
 
-                $this->addToProperties($nullable, $propertyName, $property);
+                $this->addToProperties($required, $propertyName, $property);
                 break;
 
             case "null":
@@ -159,7 +129,7 @@ class ObjectMap extends AbstractCollection
             default:
                 $namespace = $this->getFullNamespace($type);
                 if ($namespace === false) {
-                    throw new Exception\AnnotationNotFound("Annotation {$type} not supported.");
+                    throw new Exception\InvalidType("Primitive {$type} not recognized.");
                 }
 
                 $property = null;
@@ -169,7 +139,7 @@ class ObjectMap extends AbstractCollection
                     $property = new ObjectMap($namespace);
                 }
 
-                $this->addToProperties($nullable, $propertyName, $property);
+                $this->addToProperties($required, $propertyName, $property);
         }
     }
 
@@ -221,9 +191,8 @@ class ObjectMap extends AbstractCollection
      */
     public function jsonSerialize()
     {
-        $schema = array(
-            "type" => "object"
-        );
+        $schema = array();
+        $schema["type"] = "object";
 
         if ($this->title !== null) {
             $schema["title"] = $this->title;

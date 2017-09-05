@@ -11,7 +11,10 @@ class NullType implements TypeInterface
      */
     public function jsonSerialize()
     {
-        $schema = array("type" => "null");
+        $schema = array(
+            "type" => "null"
+        );
+
         return $schema;
     }
 }
