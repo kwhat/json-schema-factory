@@ -37,27 +37,34 @@ class ObjectMap extends AbstractCollection
      *
      * @throws Exception\InvalidClassName
      */
-    public function __construct($class, array $annotations = [])
+    public function __construct($class = stdClass::class, array $annotations = ['@pattern [\w]+', '@generic \stdClass'])
     {
-        try {
-            $reflectionClass = new ReflectionClass($class);
-        } catch (ReflectionException $e) {
-            throw new Exception\InvalidClassName($e->getMessage(), $e->getCode(), $e);
-        }
-
-        $classFinder = new Doctrine\AutoloadClassFinder();
-        $reflectionParser = new Reflection\StaticReflectionParser($reflectionClass->getName(), $classFinder);
-
-        $this->class = $reflectionClass->getShortName();
-        $this->namespace = $reflectionClass->getNamespaceName();
-        $this->imports = $reflectionParser->getUseStatements();
         $this->properties = array();
         $this->required = array();
 
-        
-        /** @var ReflectionProperty $property */
-        $properties = $reflectionClass->getProperties(ReflectionProperty::IS_PUBLIC);
-        $this->parseProperties($properties);
+        if ($class == stdClass::class) {
+            $this->class = "stdClass";
+            $this->namespace = "\\";
+            $this->imports = array();
+        } else {
+            try {
+                $reflectionClass = new ReflectionClass($class);
+            } catch (ReflectionException $e) {
+                throw new Exception\InvalidClassName($e->getMessage(), $e->getCode(), $e);
+            }
+
+            $classFinder = new Doctrine\AutoloadClassFinder();
+            $reflectionParser = new Reflection\StaticReflectionParser($reflectionClass->getName(), $classFinder);
+
+            $this->class = $reflectionClass->getShortName();
+            $this->namespace = $reflectionClass->getNamespaceName();
+            $this->imports = $reflectionParser->getUseStatements();
+
+            /** @var ReflectionProperty $property */
+            $properties = $reflectionClass->getProperties(ReflectionProperty::IS_PUBLIC);
+            $this->parseProperties($properties);
+        }
+
         $this->parseAnnotations($annotations);
     }
 
@@ -67,9 +74,51 @@ class ObjectMap extends AbstractCollection
     protected function parseProperties(array $properties)
     {
         foreach ($properties as $property) {
+            /** @var string $docComment */
+            $docComment = $property->getDocComment();
+
+            // Check for a description.
+            if (preg_match('/^\w+/', $docComment, $match)) {
+                $this->setDescription($match[0]);
+            }
+
             // For each property go through and pull it's doc comment that fits the regex.
-            if (preg_match_all('/\@\w+(.)*/', $property->getDocComment(), $match)) {
+            if (preg_match_all('/@\w+(.)*/', $docComment, $match)) {
+                $type = null;
+
                 // Parse the line that we matched.
+                foreach ($match[0] as $annotation) {
+                    /** @var string[] $parts */
+                    $parts = preg_split('/\s/', $annotation);
+                    if ($parts !== false) {
+                        switch ($parts[0]) {
+                            case "@var":
+                                if (isset($parts[1])) {
+
+                                }
+                        }
+
+                        if ($parts[0] == "@var" &&  && isset($parts[1])) {
+                            // PHP DOC states that @var will be in the form of 0-VAR 1-TYPE 2-NAME 3-DESCRIPTION.
+                            if (! isset($parts[2])) {
+                                trigger_error("Malformed annotation for {$this->class}::{$property}!", E_USER_WARNING);
+                            }
+
+                            $type = $parts[1];
+
+                            if (isset($parts[3])) {
+
+                            }
+                        } else if ($parts[0] == "@generic") {
+
+                        } else if ($parts[0] == "@required") {
+                            $this->required[] = $property->getName();
+                        } else {
+                            $unusedAnnotations[] = $annotation;
+                        }
+                    }
+                }
+
                 $this->parseAnnotations($match[0], $property->getName());
             }
         }
@@ -85,22 +134,19 @@ class ObjectMap extends AbstractCollection
     {
         $nullable = false;
         $unusedAnnotations = array();
-        $type = null;
 
         // First scan through the annotation list to filter and add required fields.
         foreach ($annotations as $annotation) {
             /** @var string[] $parts */
             $parts = preg_split('/\s/', $annotation);
             if ($parts !== false) {
-                if ($parts[0] == "@var" && ! $type) {
-                    // PHP DOC states that it will be in the form of 0-VAR 1-TYPE 2-NAME 3-DESCRIPTION.
-                    if (isset($parts[1]) && $parts[1][0] != "$") {
-                        $type = $parts[1];
-                    }
+                if ($parts[0] == "@var" && ! $type && isset($parts[1])) {
+                    // PHP DOC states that @var will be in the form of 0-VAR 1-TYPE 2-NAME 3-DESCRIPTION.
+                    $type = $parts[1];
                 } else if ($parts[0] == "@pattern") {
 
                 } else if ($parts[0] == "@required") {
-                    $this->required[] = $propertyName;
+                    $this->required[] = $property->getName();
                 } else if ($parts[0] == "@nullable") {
                     $nullable = true;
                 } else {

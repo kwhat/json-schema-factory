@@ -25,6 +25,7 @@ class ArrayList extends AbstractCollection
 
     /**
      * ArrayList constructor.
+     *
      * @param string $class
      * @param string[] $annotations
      */
@@ -55,10 +56,6 @@ class ArrayList extends AbstractCollection
                 case "string":
                 case "null":
                     $this->items = array("type" => $match[1]);
-                    break;
-
-                case stdClass::class:
-                    $this->items = new HashTable($annotations);
                     break;
 
                 default:

@@ -16,9 +16,7 @@ class Factory
      */
     public static function create($class, $title = null, $description = null)
     {
-        if ($class == stdClass::class) {
-            $schema = new Collection\Hash();
-        } else if (preg_match('/[\[](\s)*[\]]$/', $class)) {
+        if (preg_match('/[\[](\s)*[\]]$/', $class)) {
             $schema = new Collection\ArrayList($class);
         } else {
             $schema = new Collection\ObjectMap($class);
