@@ -8,20 +8,19 @@ use JsonSchema\TypeInterface;
 class IntegerType implements TypeInterface
 {
     /** @var int $multipleOf */
-    private $multipleOf;
+    protected $multipleOf;
 
     /** @var int $maximum */
-    private $maximum;
+    protected $maximum;
 
     /** @var int $minimum */
-    private $minimum;
+    protected $minimum;
 
     /** @var bool $exclusiveMaximum */
-    private $exclusiveMaximum;
+    protected $exclusiveMaximum;
 
     /** @var bool $exclusiveMinimum */
-    private $exclusiveMinimum;
-
+    protected $exclusiveMinimum;
 
     /**
      * @param array $annotations

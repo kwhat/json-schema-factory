@@ -8,16 +8,16 @@ use JsonSchema\TypeInterface;
 class StringType implements TypeInterface
 {
     /** @var int|null $minLength */
-    private $minLength;
+    protected $minLength;
 
     /** @var array|null $enum */
-    private $enum;
+    protected $enum;
 
     /** @var int|null $maxLength */
-    private $maxLength;
+    protected $maxLength;
 
     /** @var string|null $pattern */
-    private $pattern;
+    protected $pattern;
     
     public function __construct(array $annotations = null)
     {

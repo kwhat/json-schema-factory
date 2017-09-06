@@ -5,7 +5,7 @@ namespace JsonSchema\Primitive;
 use JsonSchema\Exception;
 use JsonSchema\TypeInterface;
 
-class Number implements TypeInterface
+class NumberType implements TypeInterface
 {
     /** @var int $maximum */
     protected $maximum;

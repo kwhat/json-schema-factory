@@ -23,13 +23,20 @@ class ArrayList extends AbstractCollection
     /** @var bool $uniqueItems */
     protected $uniqueItems;
 
-    public function __construct($class, array $annotations = null)
+    /**
+     * ArrayList constructor.
+     * @param string $class
+     * @param string[] $annotations
+     */
+    public function __construct($class, array $annotations = [])
     {
         $this->additionalItems = false;
         $this->uniqueItems = false;
         
-        if (preg_match('/(.*)[^\[\s\]]/', $class, $match) !== false) {
-            switch ($match[0]) {
+        $types = explode("|", $class);
+        
+        if (preg_match('/(.*)[^\[\s\]]/', $class, $match)) {
+            switch ($match[1]) {
                 case "int":
                 case "integer":
                     $this->items = array("type" => "integer");
@@ -40,13 +47,14 @@ class ArrayList extends AbstractCollection
                     $this->items = array("type" => "boolean");
                     break;
 
+                case "double":
                 case "float":
                     $this->items = array("type" => "number");
                     break;
 
                 case "string":
                 case "null":
-                    $this->items = array("type" => $match[0]);
+                    $this->items = array("type" => $match[1]);
                     break;
 
                 case stdClass::class:
@@ -54,13 +62,11 @@ class ArrayList extends AbstractCollection
                     break;
 
                 default:
-                    $this->items = new ObjectMap($match[0]);
+                    $this->items = new ObjectMap($match[1]);
             }
         }
 
-        if ($annotations != null) {
-            $this->parseAnnotations($annotations);
-        }
+        $this->parseAnnotations($annotations);
     }
 
     /**
