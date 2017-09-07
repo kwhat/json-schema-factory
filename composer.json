@@ -31,6 +31,5 @@
         "psr-4": {
             "JsonSchema\\Test\\": "tests"
         }
-    },
-    "minimum-stability": "dev"
+    }
 }
