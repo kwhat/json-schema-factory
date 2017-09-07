@@ -1,5 +1,5 @@
 {
-    "name": "kwhat/OpenAPI-SchemaGenerator",
+    "name": "kwhat/json-schema-generator",
     "type": "library",
     "description": "JSON Schema Generator.",
     "license": "LGPL-3.0",
