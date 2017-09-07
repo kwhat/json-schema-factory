@@ -1,5 +1,5 @@
 {
-    "name": "kwhat/json-schema-generator",
+    "name": "aicconsultinginc/json-schema-generator",
     "type": "library",
     "description": "A library to generate JSON schemas from PHPDoc annotations.",
     "license": "LGPL-3.0",
