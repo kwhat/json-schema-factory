@@ -2,7 +2,6 @@
 
 namespace JsonSchema\Primitive;
 
-use JsonSchema\Exception;
 use JsonSchema\TypeInterface;
 
 class IntegerType implements TypeInterface
@@ -25,52 +24,47 @@ class IntegerType implements TypeInterface
     /**
      * @param array $annotations
      */
-    public function __construct(array $annotations = null)
+    public function __construct(array $annotations = [])
     {
-        if ($annotations != null) {
-            $this->parseAnnotations($annotations);
-        }
+        $this->parseAnnotations($annotations);
     }
 
     /**
      * @param array $annotations
-     * 
-     * @throws Exception\InvalidType
-     * @throws Exception\AnnotationNotFound
      */
     protected function parseAnnotations(array $annotations)
     {
         foreach($annotations as $annotation) {
             $parts = preg_split('/\s/', $annotation);
-            if (! isset($parts[0]) || ! isset($parts[1])) {
-                throw new Exception\InvalidType("Invalid annotation format.");
-            }
+            if (!isset($parts[0]) || !isset($parts[1])) {
+                trigger_error("Malformed annotation {$annotation}!", E_USER_WARNING);
+            } else {
+                $keyword = $parts[0];
+                $value = $parts[1];
+                switch ($keyword) {
+                    case "@multipleOf":
+                        $this->multipleOf = (int) $value;
+                        break;
 
-            $keyword = $parts[0];
-            $value = $parts[1];
-            switch ($keyword) {
-                case "@multipleOf":
-                    $this->multipleOf = (int) $value;
-                    break;
+                    case "@minimum":
+                        $this->maximum = (int) $value;
+                        break;
 
-                case "@minimum":
-                    $this->maximum = (int) $value;
-                    break;
+                    case "@maximum":
+                        $this->minimum = (int) $value;
+                        break;
 
-                case "@maximum":
-                    $this->minimum = (int) $value;
-                    break;
+                    case "@exclusiveMinimum":
+                        $this->exclusiveMinimum = (bool) $value;
+                        break;
 
-                case "@exclusiveMinimum":
-                    $this->exclusiveMinimum = (bool) $value;
-                    break;
+                    case "@exclusiveMaximum":
+                        $this->exclusiveMaximum = (bool) $value;
+                        break;
 
-                case "@exclusiveMaximum":
-                    $this->exclusiveMaximum = (bool) $value;
-                    break;
-
-                default:
-                    throw new Exception\AnnotationNotFound("Annotation {$keyword} not recognized.");
+                    default:
+                        trigger_error("Unknown annotation {$keyword}!", E_USER_NOTICE);
+                }
             }
         }
     }

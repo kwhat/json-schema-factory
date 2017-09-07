@@ -4,7 +4,7 @@ namespace JsonSchema\Exception;
 
 use Exception;
 
-class InvalidClassName extends Exception
+class ClassNotFound extends Exception
 {
 
 }

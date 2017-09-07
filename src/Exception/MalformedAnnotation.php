@@ -4,7 +4,7 @@ namespace JsonSchema\Exception;
 
 use Exception;
 
-class InvalidProperty extends Exception
+class MalformedAnnotation extends Exception
 {
 
 }

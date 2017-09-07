@@ -1,11 +1,11 @@
 {
-    "name": "kwhat/JsonSchema",
+    "name": "kwhat/OpenAPI-SchemaGenerator",
     "type": "library",
     "description": "JSON Schema Generator.",
     "license": "LGPL-3.0",
     "authors": [
         {
-            "name": "Alex Barker",
+            "name": "Alexander Barker",
             "role": "Developer",
             "homepage": "https://github.com/kwhat"
         },
@@ -21,7 +21,6 @@
     },
     "require-dev": {
         "phpunit/phpunit": "~4.0"
-
     },
     "autoload": {
         "psr-4": {

@@ -3,8 +3,6 @@
 namespace JsonSchema\Collection;
 
 use JsonSchema\AbstractCollection;
-use JsonSchema\Exception;
-use stdClass;
 
 class ArrayList extends AbstractCollection
 {
@@ -33,9 +31,7 @@ class ArrayList extends AbstractCollection
     {
         $this->additionalItems = false;
         $this->uniqueItems = false;
-        
-        $types = explode("|", $class);
-        
+
         if (preg_match('/(.*)[^\[\s\]]/', $class, $match)) {
             switch ($match[1]) {
                 case "int":
@@ -68,40 +64,37 @@ class ArrayList extends AbstractCollection
 
     /**
      * @param array $annotations
-     *
-     * @throws Exception\InvalidType
-     * @throws Exception\AnnotationNotFound
      */
     protected function parseAnnotations(array $annotations)
     {
         foreach($annotations as $annotation) {
             $parts = preg_split('/\s/', $annotation);
             if (! isset($parts[0]) || ! isset($parts[1])) {
-                throw new Exception\InvalidType("Invalid annotation format.");
-            }
+                trigger_error("Malformed annotation {$annotation}!", E_USER_WARNING);
+            } else {
+                $keyword = $parts[0];
+                $value = $parts[1];
 
-            $keyword = $parts[0];
-            $value = $parts[1];
+                switch ($keyword) {
+                    case "@additionalItems":
+                        $this->additionalItems = (bool) $value;
+                        break;
 
-            switch ($keyword) {
-                case "@additionalItems":
-                    $this->additionalItems = (bool) $value;
-                    break;
+                    case "@minItems":
+                        $this->minItems = (int) $value;
+                        break;
 
-                case "@minItems":
-                    $this->minItems = (int) $value;
-                    break;
+                    case "@maxItems":
+                        $this->maxItems = (int) $value;
+                        break;
 
-                case "@maxItems":
-                    $this->maxItems = (int) $value;
-                    break;
+                    case "@uniqueItems":
+                        $this->uniqueItems = (bool) $value;
+                        break;
 
-                case "@uniqueItems":
-                    $this->uniqueItems = (bool) $value;
-                    break;
-
-                default:
-                    throw new Exception\AnnotationNotFound("Annotation {$keyword} not supported.");
+                    default:
+                        trigger_error("Unknown annotation {$keyword}!", E_USER_NOTICE);
+                }
             }
         }
     }

@@ -10,16 +10,16 @@ class AutoloadClassFinder implements Reflection\ClassFinderInterface
     /**
      * @param string $class
      *
-     * @return string|null $result
+     * @return string|null
      */
     public function findFile($class)
     {
-        $result = null;
+        $file = null;
         if (class_exists($class, true)) {
-            $temp = new ReflectionClass($class);
-            $result = $temp->getFileName();
+            $reflectionClass = new ReflectionClass($class);
+            $file = $reflectionClass->getFileName();
         }
 
-        return $result;
+        return $file;
     }
 }

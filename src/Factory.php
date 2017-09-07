@@ -2,28 +2,57 @@
 
 namespace JsonSchema;
 
-use stdClass;
-
 class Factory
 {
     /**
      * @param string $class
      * @param string|null $title
      * @param string|null $description
+     * @param string[] $annotations
      *
-     * @return ArrayType|ObjectType
-     * @throws Exception\InvalidClassName
+     * @return TypeInterface
+     * @throws Exception\ClassNotFound
      */
-    public static function create($class, $title = null, $description = null)
+    public static function create($class, $title = null, $description = null, array $annotations = [])
     {
-        if (preg_match('/[\[](\s)*[\]]$/', $class)) {
-            $schema = new Collection\ArrayList($class);
-        } else {
-            $schema = new Collection\ObjectMap($class);
+        /** @var TypeInterface $schema */
+        switch ($class) {
+            case "string":
+                $schema = new Primitive\StringType($annotations);
+                break;
+
+            case "int":
+            case "integer":
+                $schema = new Primitive\IntegerType($annotations);
+                break;
+
+            case "double":
+            case "float":
+                $schema = new Primitive\NumberType($annotations);
+                break;
+
+            case "bool":
+            case "boolean":
+                $schema = new Primitive\BooleanType();
+                break;
+
+            case "null":
+                $schema = new Primitive\NullType();
+                break;
+
+            // Match primitive and object array notation.
+            case preg_match('/(.)+[^\[\s\]]/', $class, $match) == 1:
+                $schema = new Collection\ArrayList($class, $annotations);
+                break;
+
+            default:
+                $schema = new Collection\ObjectMap($class, $annotations);
         }
 
-        $schema->setTitle($title);
-        $schema->setDescription($description);
+        if ($schema instanceof AbstractCollection) {
+            $schema->setTitle($title);
+            $schema->setDescription($description);
+        }
 
         return $schema;
     }
