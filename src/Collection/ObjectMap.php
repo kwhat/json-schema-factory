@@ -60,6 +60,7 @@ class ObjectMap extends AbstractCollection
             try {
                 $reflectionClass = new ReflectionClass($class);
             } catch (ReflectionException $e) {
+                echo $e->getTraceAsString();
                 throw new Exception\ClassNotFound($e->getMessage(), $e->getCode(), $e);
             }
 
@@ -114,10 +115,10 @@ class ObjectMap extends AbstractCollection
                         return trim("{$key} {$value}");
                     }, array_keys($tags), array_values($tags));
 
+                    // Get multiple types.
                     $types = preg_split('/\s?\|\s?/', $args[0]);
                     foreach ($types as $type) {
                         $namespace = $this->getFullNamespace($type);
-
                         if ($namespace !== false) {
                             $type = $namespace;
                         }
