@@ -24,13 +24,13 @@ class StringType implements TypeInterface
     }
 
     /**
-     * @param array $annotations
+     * @param string[] $annotations
      */
     protected function parseAnnotations(array $annotations)
     {
         foreach ($annotations as $annotation) {
-            $parts = preg_split('/\s/', $annotation);
-            if (!isset($parts[0]) || !isset($parts[1])) {
+            $parts = preg_split('/\s/', $annotation, 2);
+            if (! isset($parts[0]) || ! isset($parts[1])) {
                 trigger_error("Malformed annotation {$annotation}!", E_USER_WARNING);
             } else {
                 $keyword = $parts[0];
@@ -50,15 +50,15 @@ class StringType implements TypeInterface
                         break;
 
                     case "@minLength":
-                        $this->minLength = (int)$value;
+                        $this->minLength = (int) $value;
                         break;
 
                     case "@maxLength":
-                        $this->maxLength = (int)$value;
+                        $this->maxLength = (int) $value;
                         break;
 
                     case "@pattern":
-                        $this->pattern = (string)$value;
+                        $this->pattern = (string) $value;
                         break;
 
                     default:

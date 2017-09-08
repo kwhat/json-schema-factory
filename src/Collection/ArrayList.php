@@ -3,6 +3,7 @@
 namespace JsonSchema\Collection;
 
 use JsonSchema\AbstractCollection;
+use Noodlehaus\Exception;
 
 class ArrayList extends AbstractCollection
 {
@@ -32,7 +33,14 @@ class ArrayList extends AbstractCollection
         $this->additionalItems = false;
         $this->uniqueItems = false;
 
-        if (preg_match('/(.*)[^\[\s\]]/', $class, $match)) {
+        try {
+            throw new \Exception();
+        } catch (\Exception $e) {
+            echo $e->getTraceAsString();
+        }
+
+        if (preg_match('/(.*)\[\s?\]/', $class, $match)) {
+            echo $match[1];
             switch ($match[1]) {
                 case "int":
                 case "integer":

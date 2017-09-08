@@ -60,6 +60,7 @@ class ObjectMap extends AbstractCollection
             try {
                 $reflectionClass = new ReflectionClass($class);
             } catch (ReflectionException $e) {
+                echo $e->getTraceAsString();
                 throw new Exception\ClassNotFound($e->getMessage(), $e->getCode(), $e);
             }
 
@@ -95,31 +96,29 @@ class ObjectMap extends AbstractCollection
             }
 
             // Match all properties.
-            if (preg_match_all('/@\w+(.)*/', $docComment, $match)) {
-                // Parse the line that we matched, order matters.
-                $annotations = $this->parseAnnotations($match[0]);
+            if (preg_match_all('/(@\w+)[^\S\x0a\x0d]?(.*)$/m', $docComment, $match)) {
+                $tags = array_combine($match[1], $match[2]);
 
-                if (isset($annotations["@required"])) {
+                if (isset($tags["@required"])) {
                     $this->required[] = $property->getName();
-                    unset($annotations["@required"]);
+                    unset($tags["@required"]);
                 }
 
-                if (isset($annotations["@var"])) {
-                    if (! isset($annotations["@var"][0])) {
+                if (isset($tags["@var"])) {
+                    $args = preg_split('/\s/', $tags["@var"], 3);
+                    unset($tags["@var"]);
+                    if (empty($args)) {
                         throw new Exception\MalformedAnnotation("Malformed annotation for {$this->class}::{$property}!");
-                    } else if (! isset($annotations["@var"][1])) {
-                        trigger_error("Malformed annotation for {$this->class}::{$property}!", E_USER_WARNING);
                     }
 
+                    $annotations = array_map(function ($key, $value) {
+                        return trim("{$key} {$value}");
+                    }, array_keys($tags), array_values($tags));
+                    
                     // Get multiple types.
-                    $types = preg_split('/\s?|\s?/', $annotations["@var"][0]);
-                    unset($annotations["@var"]);
-
-
-                    $properties = array();
+                    $types = preg_split('/\s?\|\s?/', $args[0]);
                     foreach ($types as $type) {
                         $namespace = $this->getFullNamespace($type);
-
                         if ($namespace !== false) {
                             $type = $namespace;
                         }
@@ -176,7 +175,7 @@ class ObjectMap extends AbstractCollection
         } else {
             foreach($this->imports as $use) {
                 // Check for use alias.
-                if (preg_match('(.*)/\b+as\b+' . preg_quote($type, "\\") . '/', $use, $match)) {
+                if (preg_match('/(.+)\s+as\s+' . preg_quote($type, "\\") . '/', $use, $match)) {
                     if (class_exists($match[1])) {
                         $fullNamespace = $match[1];
                         break;
