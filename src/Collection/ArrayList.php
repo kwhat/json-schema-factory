@@ -32,7 +32,13 @@ class ArrayList extends AbstractCollection
         $this->additionalItems = false;
         $this->uniqueItems = false;
 
-        if (preg_match('/(.*)[^\[\s\]]/', $class, $match)) {
+        try {
+            throw new \Exception();
+        } catch (\Exception $e) {
+            echo $e->getTraceAsString();
+        }
+
+        if (preg_match('/(.*)\[\s?\]/', $class, $match)) {
             switch ($match[1]) {
                 case "int":
                 case "integer":

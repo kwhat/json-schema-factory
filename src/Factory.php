@@ -41,7 +41,7 @@ class Factory
                 break;
 
             // Match primitive and object array notation.
-            case preg_match('/(.)+[^\[\s\]]/', $class, $match) == 1:
+            case preg_match('/(.+)\[\s?\]$/', $class) == 1:
                 $schema = new Collection\ArrayList($class, $annotations);
                 break;
 
