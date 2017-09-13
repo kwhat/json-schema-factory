@@ -43,7 +43,7 @@ class ObjectMap extends AbstractCollection
 
         if ($class == stdClass::class) {
             $this->class = stdClass::class;
-            $this->namespace = "\\";
+            $this->namespace = "";
             $this->imports = array();
 
             // Parse the line that we matched, order matters.
@@ -60,7 +60,6 @@ class ObjectMap extends AbstractCollection
             try {
                 $reflectionClass = new ReflectionClass($class);
             } catch (ReflectionException $e) {
-                echo $e->getTraceAsString();
                 throw new Exception\ClassNotFound($e->getMessage(), $e->getCode(), $e);
             }
 
@@ -111,6 +110,7 @@ class ObjectMap extends AbstractCollection
                         throw new Exception\MalformedAnnotation("Malformed annotation for {$this->class}::{$property}!");
                     }
 
+                    $schemas = array();
                     $annotations = array_map(function ($key, $value) {
                         return trim("{$key} {$value}");
                     }, array_keys($tags), array_values($tags));
@@ -123,14 +123,14 @@ class ObjectMap extends AbstractCollection
                             $type = $namespace;
                         }
 
-                        $properties[] = Factory::create($type, null, null, $annotations);
+                        $schemas[] = Factory::create($type, null, null, $annotations);
                     }
 
-                    $count = count($properties);
+                    $count = count($schemas);
                     if ($count == 1) {
-                        $type = $properties[0];
+                        $type = $schemas[0];
                     } else if ($count > 1) {
-                        $type = array("oneOf" => $properties);
+                        $type = array("oneOf" => $schemas);
                     } else {
                         $type = Factory::create("null");
                     }
@@ -170,12 +170,14 @@ class ObjectMap extends AbstractCollection
     {
         $fullNamespace = false;
 
-        if (class_exists("\\" . $this->namespace . "\\" . $type)) {
-            $fullNamespace = "\\" . $this->namespace . "\\" . $type;
+        if (class_exists($type)) {
+            $fullNamespace = $type;
+        } else if (class_exists($this->namespace . "\\" . $type)) {
+            $fullNamespace = $this->namespace . "\\" . $type;
         } else {
             foreach($this->imports as $use) {
                 // Check for use alias.
-                if (preg_match('/(.+)\s+as\s+' . preg_quote($type, "\\") . '/', $use, $match)) {
+                if (preg_match('/(.+)\s+as\s+' . preg_quote($type, "\\") . '$/', $use, $match)) {
                     if (class_exists($match[1])) {
                         $fullNamespace = $match[1];
                         break;
@@ -183,6 +185,15 @@ class ObjectMap extends AbstractCollection
                 } else if (class_exists("{$use}\\{$type}")) {
                     $fullNamespace = "{$use}\\{$type}";
                     break;
+                } else {
+                    $separator = strrpos($use , "\\");
+                    if ($separator !== false) {
+                        $class = substr($use, 0, $separator + 1) . $type;
+                        if (class_exists($class)) {
+                            $fullNamespace = $class;
+                            break;
+                        }
+                    }
                 }
             }
         }

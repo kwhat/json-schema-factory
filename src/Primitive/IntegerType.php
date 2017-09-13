@@ -6,8 +6,11 @@ use JsonSchema\TypeInterface;
 
 class IntegerType implements TypeInterface
 {
-    /** @var int $multipleOf */
-    protected $multipleOf;
+    /** @var bool $exclusiveMaximum */
+    protected $exclusiveMaximum;
+
+    /** @var bool $exclusiveMinimum */
+    protected $exclusiveMinimum;
 
     /** @var int $maximum */
     protected $maximum;
@@ -15,11 +18,8 @@ class IntegerType implements TypeInterface
     /** @var int $minimum */
     protected $minimum;
 
-    /** @var bool $exclusiveMaximum */
-    protected $exclusiveMaximum;
-
-    /** @var bool $exclusiveMinimum */
-    protected $exclusiveMinimum;
+    /** @var float $multipleOf */
+    protected $multipleOf;
 
     /**
      * @param array $annotations
@@ -36,31 +36,82 @@ class IntegerType implements TypeInterface
     {
         foreach($annotations as $annotation) {
             $parts = preg_split('/\s/', $annotation);
+            if ($parts !== false) {
+                $keyword = array_shift($parts);
+
+                switch ($keyword) {
+                    case "@exclusiveMaximum":
+                        $this->exclusiveMaximum = true;
+                        break;
+
+                    case "@exclusiveMinimum":
+                        $this->exclusiveMinimum = true;
+                        break;
+
+                    default:
+                        // Process keyword arguments.
+                        if (! isset($parts[0])) {
+                            throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
+                        }
+
+                        switch ($keyword) {
+                            case "@maximum":
+                                $this->maximum = (float) $parts[0];
+                                break;
+
+                            case "@minimum":
+                                $this->minimum = (float) $parts[0];
+                                break;
+
+                            case "@multipleOf":
+                                $this->multipleOf = (float) $parts[0];
+                                break;
+                        }
+                }
+            }
+            
+            if ($parts !== false) {
+                $keyword = array_shift($parts);
+                switch ($keyword) {
+                    case "@enum":
+                        if (! empty($parts)) {
+                            $this->enum = $parts;
+                        }
+                        break;
+
+                    case "@exclusiveMinimum":
+                        $this->exclusiveMinimum = true;
+                        break;
+
+                    case "@exclusiveMaximum":
+                        $this->exclusiveMaximum = true;
+                        break;
+
+                    case "@maximum":
+                        $this->maximum = (int) $parts[0];
+                        break;
+
+                    case "@minimum":
+                        $this->minimum = (int) $parts[0];
+                        break;
+
+                    case "@multipleOf":
+                        $this->multipleOf = (float) $parts[0];
+                        break;
+                }
+            }
+
+
             if (!isset($parts[0]) || !isset($parts[1])) {
                 trigger_error("Malformed annotation {$annotation}!", E_USER_WARNING);
             } else {
                 $keyword = $parts[0];
                 $value = $parts[1];
                 switch ($keyword) {
-                    case "@multipleOf":
-                        $this->multipleOf = (int) $value;
-                        break;
 
-                    case "@minimum":
-                        $this->maximum = (int) $value;
-                        break;
+                    
 
-                    case "@maximum":
-                        $this->minimum = (int) $value;
-                        break;
 
-                    case "@exclusiveMinimum":
-                        $this->exclusiveMinimum = (bool) $value;
-                        break;
-
-                    case "@exclusiveMaximum":
-                        $this->exclusiveMaximum = (bool) $value;
-                        break;
 
                     default:
                         trigger_error("Unknown annotation {$keyword}!", E_USER_NOTICE);

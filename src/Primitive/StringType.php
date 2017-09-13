@@ -2,18 +2,19 @@
 
 namespace JsonSchema\Primitive;
 
+use JsonSchema\Exception;
 use JsonSchema\TypeInterface;
 
 class StringType implements TypeInterface
 {
-    /** @var int|null $minLength */
-    protected $minLength;
-
-    /** @var array|null $enum */
+    /** @var string[]|null $enum */
     protected $enum;
 
     /** @var int|null $maxLength */
     protected $maxLength;
+
+    /** @var int|null $minLength */
+    protected $minLength;
 
     /** @var string|null $pattern */
     protected $pattern;
@@ -25,44 +26,38 @@ class StringType implements TypeInterface
 
     /**
      * @param string[] $annotations
+     *
+     * @throws Exception\MalformedAnnotation
      */
     protected function parseAnnotations(array $annotations)
     {
         foreach ($annotations as $annotation) {
             $parts = preg_split('/\s/', $annotation, 2);
+
             if (! isset($parts[0]) || ! isset($parts[1])) {
-                trigger_error("Malformed annotation {$annotation}!", E_USER_WARNING);
+                throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
             } else {
-                $keyword = $parts[0];
-                $value = $parts[1];
+                $keyword = array_shift($parts);
 
                 switch ($keyword) {
                     case "@enum":
-                        $this->enum = array();
-                        $enums = array_slice($parts, 1);
-                        foreach ($enums as $enum) {
-                            // Results from the regex, if successful, will be stored in the array index zero.
-                            $match = array();
-                            if (preg_match('/[^\,\s]+/', $enum, $match) !== false) {
-                                $this->enum[] = $match[0];
-                            }
+                        $enums = preg_split('/\s/', $parts);
+                        if ($enums !== false) {
+                            $this->enum = $enums;
                         }
                         break;
 
                     case "@minLength":
-                        $this->minLength = (int) $value;
+                        $this->minLength = (int) $parts[0];
                         break;
 
                     case "@maxLength":
-                        $this->maxLength = (int) $value;
+                        $this->maxLength = (int) $parts[0];
                         break;
 
                     case "@pattern":
-                        $this->pattern = (string) $value;
+                        $this->pattern = (string) $parts[0];
                         break;
-
-                    default:
-                        trigger_error("Unknown annotation {$keyword}!", E_USER_NOTICE);
                 }
             }
         }
