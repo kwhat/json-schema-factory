@@ -24,7 +24,7 @@ class ObjectMap extends AbstractCollection
     /** @var string[] $imports */
     protected $imports;
 
-    /** @var TypeInterface[]|string $properties */
+    /** @var TypeInterface[] | string $properties */
     protected $properties;
 
     /** @var array $required */
@@ -94,8 +94,8 @@ class ObjectMap extends AbstractCollection
                 $this->setDescription($match[0]);
             }
 
-            // Match all properties.
-            if (preg_match_all('/(@\w+)[^\S\x0a\x0d]?(.*)$/m', $docComment, $match)) {
+            // Match all annotations in the docComment.
+            if (preg_match_all('/(@[\w+\-])[^\S\x0a\x0d]?(.*)$/m', $docComment, $match)) {
                 $tags = array_combine($match[1], $match[2]);
 
                 if (isset($tags["@required"])) {
@@ -123,7 +123,7 @@ class ObjectMap extends AbstractCollection
                             $type = $namespace;
                         }
 
-                        $schemas[] = Factory::create($type, null, null, $annotations);
+                        $schemas[] = Factory::create($type, $annotations);
                     }
 
                     $count = count($schemas);
@@ -164,6 +164,7 @@ class ObjectMap extends AbstractCollection
 
     /**
      * @param string $type
+     *
      * @return string|false $fullNamespace
      */
     private function getFullNamespace($type)

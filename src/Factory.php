@@ -6,16 +6,13 @@ class Factory
 {
     /**
      * @param string $class
-     * @param string|null $title
-     * @param string|null $description
      * @param string[] $annotations
      *
-     * @return TypeInterface
+     * @return SchemaInterface
      * @throws Exception\ClassNotFound
      */
-    public static function create($class, $title = null, $description = null, array $annotations = [])
+    public static function create($class, array $annotations = [])
     {
-        /** @var TypeInterface $schema */
         switch ($class) {
             case "string":
                 $schema = new Primitive\StringType($annotations);
@@ -49,11 +46,7 @@ class Factory
                 $schema = new Collection\ObjectMap($class, $annotations);
         }
 
-        if ($schema instanceof AbstractCollection) {
-            $schema->setTitle($title);
-            $schema->setDescription($description);
-        }
-
+        /** @var SchemaInterface $schema */
         return $schema;
     }
 }

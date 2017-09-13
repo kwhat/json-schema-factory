@@ -2,9 +2,9 @@
 
 namespace JsonSchema\Primitive;
 
-use JsonSchema\TypeInterface;
+use JsonSchema\SchemaInterface;
 
-class BooleanType implements TypeInterface
+class BooleanType implements SchemaInterface
 {
     /**
      * @return array
@@ -16,5 +16,15 @@ class BooleanType implements TypeInterface
         );
 
         return $schema;
+    }
+
+    /**
+     * Produces a json serializable schema to represent this class.
+     *
+     * @return SchemaInterface
+     */
+    public static function schemaSerialize()
+    {
+        // TODO: Implement schemaSerialize() method.
     }
 }

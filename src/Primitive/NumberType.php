@@ -2,25 +2,28 @@
 
 namespace JsonSchema\Primitive;
 
+use JsonSchema\AbstractSchema;
 use JsonSchema\Exception;
-use JsonSchema\TypeInterface;
 
-class NumberType implements TypeInterface
+class NumberType extends AbstractSchema
 {
+    /** @var int[] $enum */
+    public $enum;
+
     /** @var bool $exclusiveMaximum */
-    protected $exclusiveMaximum;
+    public $exclusiveMaximum;
 
     /** @var bool $exclusiveMinimum */
-    protected $exclusiveMinimum;
+    public $exclusiveMinimum;
 
     /** @var float $maximum */
-    protected $maximum;
+    public $maximum;
 
     /** @var float $minimum */
-    protected $minimum;
+    public $minimum;
 
     /** @var float $multipleOf */
-    protected $multipleOf;
+    public $multipleOf;
 
     /**
      * @param array $annotations
@@ -34,77 +37,74 @@ class NumberType implements TypeInterface
     }
 
     /**
-     * @param array $annotations
+     * @param string[] $annotations
      *
      * @throws Exception\MalformedAnnotation
      */
     protected function parseAnnotations(array $annotations)
     {
         foreach($annotations as $annotation) {
-            $parts = preg_split('/\s/', $annotation);
-            if ($parts !== false) {
-                $keyword = array_shift($parts);
+            $args = preg_split('/\s/', $annotation);
 
-                switch ($keyword) {
-                    case "@exclusiveMaximum":
-                        $this->exclusiveMaximum = true;
-                        break;
+            $keyword = array_shift($args);
+            switch ($keyword) {
+                case "@enum":
+                    if (empty($args)) {
+                        throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
+                    }
 
-                    case "@exclusiveMinimum":
-                        $this->exclusiveMinimum = true;
-                        break;
+                    $this->enum = $args;
+                    break;
 
-                    default:
-                        // Process keyword arguments.
-                        if (! isset($parts[0])) {
-                            throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
-                        }
+                case "@exclusiveMaximum":
+                    $this->exclusiveMaximum = true;
+                    break;
 
-                        switch ($keyword) {
-                            case "@maximum":
-                                $this->maximum = (float) $parts[0];
-                                break;
+                case "@exclusiveMinimum":
+                    $this->exclusiveMinimum = true;
+                    break;
 
-                            case "@minimum":
-                                $this->minimum = (float) $parts[0];
-                                break;
+                case "@maximum":
+                    if (! isset($args[0])) {
+                        throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
+                    }
 
-                            case "@multipleOf":
-                                $this->multipleOf = (float) $parts[0];
-                                break;
-                        }
-                }
+                    $this->maximum = (float) $args[0];
+                    break;
+
+                case "@minimum":
+                    if (! isset($args[0])) {
+                        throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
+                    }
+
+                    $this->minimum = (float) $args[0];
+                    break;
+
+                case "@multipleOf":
+                    if (! isset($args[0])) {
+                        throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
+                    }
+
+                    $this->multipleOf = (float) $args[0];
+                    break;
             }
         }
     }
 
     /**
-     * @return array
+     * @inheritdoc
      */
     public function jsonSerialize()
     {
-        $schema = array(
-            "type" => "number"
-        );
+        $schema = parent::jsonSerialize();
+        $schema["type"] = "number;";
 
-        if ($this->maximum !== null) {
-            $schema["maximum"] = $this->maximum;
-
-            if ($this->exclusiveMinimum) {
-                $schema["exclusiveMinimum"] = $this->exclusiveMinimum;
-            }
+        if (! isset($schema["maximum"]) || ! $this->exclusiveMaximum) {
+            unset($schema["exclusiveMaximum"]);
         }
 
-        if ($this->minimum !== null) {
-            $schema["minimum"] = $this->minimum;
-
-            if ($this->exclusiveMinimum) {
-                $schema["exclusiveMinimum"] = $this->exclusiveMinimum;
-            }
-        }
-
-        if ($this->multipleOf !== null) {
-            $schema["multipleOf"] = $this->multipleOf;
+        if (! isset($schema["minimum"]) || ! $this->exclusiveMinimum) {
+            unset($schema["exclusiveMinimum"]);
         }
 
         return $schema;

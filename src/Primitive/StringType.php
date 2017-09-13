@@ -2,22 +2,22 @@
 
 namespace JsonSchema\Primitive;
 
+use JsonSchema\AbstractSchema;
 use JsonSchema\Exception;
-use JsonSchema\TypeInterface;
 
-class StringType implements TypeInterface
+class StringType extends AbstractSchema
 {
-    /** @var string[]|null $enum */
-    protected $enum;
+    /** @var string[] $enum */
+    public $enum;
 
-    /** @var int|null $maxLength */
-    protected $maxLength;
+    /** @var int $maxLength */
+    public $maxLength;
 
-    /** @var int|null $minLength */
-    protected $minLength;
+    /** @var int $minLength */
+    public $minLength;
 
-    /** @var string|null $pattern */
-    protected $pattern;
+    /** @var string $pattern */
+    public $pattern;
     
     public function __construct(array $annotations = [])
     {
@@ -32,61 +32,52 @@ class StringType implements TypeInterface
     protected function parseAnnotations(array $annotations)
     {
         foreach ($annotations as $annotation) {
-            $parts = preg_split('/\s/', $annotation, 2);
+            $args = preg_split('/\s/', $annotation);
 
-            if (! isset($parts[0]) || ! isset($parts[1])) {
-                throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
-            } else {
-                $keyword = array_shift($parts);
+            $keyword = array_shift($args);
+            switch ($keyword) {
+                case "@enum":
+                    if (! isset($args[0])) {
+                        throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
+                    }
 
-                switch ($keyword) {
-                    case "@enum":
-                        $enums = preg_split('/\s/', $parts[0]);
-                        if ($enums !== false) {
-                            $this->enum = $enums;
-                        }
-                        break;
+                    $this->enum = $args;
+                    break;
 
-                    case "@minLength":
-                        $this->minLength = (int) $parts[0];
-                        break;
+                case "@minLength":
+                    if (! isset($args[0])) {
+                        throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
+                    }
 
-                    case "@maxLength":
-                        $this->maxLength = (int) $parts[0];
-                        break;
+                    $this->minLength = (int) $args[0];
+                    break;
 
-                    case "@pattern":
-                        $this->pattern = (string) $parts[0];
-                        break;
-                }
+                case "@maxLength":
+                    if (! isset($args[0])) {
+                        throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
+                    }
+
+                    $this->maxLength = (int) $args[0];
+                    break;
+
+                case "@pattern":
+                    if (! isset($args[0])) {
+                        throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
+                    }
+
+                    $this->pattern = (string) $args[0];
+                    break;
             }
         }
     }
 
     /**
-     * @return array
+     * @inheritdoc
      */
     public function jsonSerialize()
     {
-        $schema = array(
-            "type" => "string"
-        );
-
-        if ($this->minLength !== null) {
-            $schema["minLength"] = $this->minLength;
-        }
-
-        if ($this->maxLength !== null) {
-            $schema["maxLength"] = $this->maxLength;
-        }
-
-        if ($this->enum !== null) {
-            $schema["enum"] = $this->enum;
-        }
-
-        if ($this->pattern !== null) {
-            $schema["pattern"] = $this->pattern;
-         }
+        $schema = parent::jsonSerialize();
+        $schema["type"] = "string;";
 
         return $schema;
     }

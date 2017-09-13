@@ -2,20 +2,20 @@
 
 namespace JsonSchema\Collection;
 
-use JsonSchema\AbstractCollection;
+use JsonSchema\AbstractSchema;
 use JsonSchema\Exception;
 use JsonSchema\Factory;
-use JsonSchema\TypeInterface;
+use JsonSchema\SchemaInterface;
 
-class ArrayList extends AbstractCollection
+class ArrayList extends AbstractSchema
 {
-    /** @var TypeInterface[] $items */
+    /** @var SchemaInterface[] $items */
     protected $items;
 
     /** @var int|null $maxItems */
     protected $maxItems;
 
-    /** @var int|null $minItems */
+    /** @var int $minItems */
     protected $minItems;
 
     /** @var bool $uniqueItems */
@@ -29,14 +29,18 @@ class ArrayList extends AbstractCollection
      */
     public function __construct($class, array $annotations = [])
     {
-        $this->uniqueItems = false;
         $this->items = array();
+        $this->uniqueItems = false;
 
         $types = preg_split('/\s?\|\s?/', $class);
         foreach ($types as $type) {
             if (preg_match('/(.*)\[\s?\]/', $type, $match)) {
-                $this->items[] = Factory::create($match[1], null, null, $annotations);
+                $this->items[] = Factory::create($match[1], $annotations);
             }
+        }
+
+        if (! isset($this->items[0])) {
+            throw new Exception\MalformedAnnotation("Missing annotation @var!");
         }
 
         $this->parseAnnotations($annotations);
@@ -56,24 +60,25 @@ class ArrayList extends AbstractCollection
                 $keyword = array_shift($parts);
 
                 switch ($keyword) {
-                    case "@uniqueItems":
-                        $this->uniqueItems = true;
-                        break;
-
-                    default:
+                    case "@maxItems":
                         if (! isset($parts[0])) {
                             throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
                         }
 
-                        switch ($keyword) {
-                            case "@maxItems":
-                                $this->maxItems = (int) $parts[0];
-                                break;
+                        $this->maxItems = (int) $parts[0];
+                        break;
 
-                            case "@minItems":
-                                $this->minItems = (int) $parts[0];
-                                break;
+                    case "@minItems":
+                        if (! isset($parts[0])) {
+                            throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
                         }
+
+                        $this->minItems = (int) $parts[0];
+                        break;
+
+                    case "@uniqueItems":
+                        $this->uniqueItems = true;
+                        break;
                 }
             }
         }
