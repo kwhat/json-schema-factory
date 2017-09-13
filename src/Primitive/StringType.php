@@ -41,7 +41,7 @@ class StringType implements TypeInterface
 
                 switch ($keyword) {
                     case "@enum":
-                        $enums = preg_split('/\s/', $parts);
+                        $enums = preg_split('/\s/', $parts[0]);
                         if ($enums !== false) {
                             $this->enum = $enums;
                         }

@@ -49,7 +49,7 @@ class ArrayList extends AbstractCollection
      */
     protected function parseAnnotations(array $annotations)
     {
-        foreach($annotations as $annotation) {
+        foreach ($annotations as $annotation) {
             $parts = preg_split('/\s/', $annotation, 2);
 
             if ($parts !== false) {
