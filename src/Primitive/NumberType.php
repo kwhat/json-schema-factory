@@ -34,7 +34,7 @@ class NumberType implements TypeInterface
     }
 
     /**
-     * @param array $annotations
+     * @param string[] $annotations
      *
      * @throws Exception\MalformedAnnotation
      */
@@ -46,6 +46,14 @@ class NumberType implements TypeInterface
                 $keyword = array_shift($parts);
 
                 switch ($keyword) {
+                    case "@enum":
+                        if (empty($parts)) {
+                            throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
+                        }
+
+                        $this->enum = $parts;
+                        break;
+
                     case "@exclusiveMaximum":
                         $this->exclusiveMaximum = true;
                         break;
@@ -54,25 +62,29 @@ class NumberType implements TypeInterface
                         $this->exclusiveMinimum = true;
                         break;
 
-                    default:
-                        // Process keyword arguments.
+                    case "@maximum":
                         if (! isset($parts[0])) {
                             throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
                         }
 
-                        switch ($keyword) {
-                            case "@maximum":
-                                $this->maximum = (float) $parts[0];
-                                break;
+                        $this->maximum = (float) $parts[0];
+                        break;
 
-                            case "@minimum":
-                                $this->minimum = (float) $parts[0];
-                                break;
-
-                            case "@multipleOf":
-                                $this->multipleOf = (float) $parts[0];
-                                break;
+                    case "@minimum":
+                        if (! isset($parts[0])) {
+                            throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
                         }
+
+                        $this->minimum = (float) $parts[0];
+                        break;
+
+                    case "@multipleOf":
+                        if (! isset($parts[0])) {
+                            throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
+                        }
+
+                        $this->multipleOf = (float) $parts[0];
+                        break;
                 }
             }
         }
@@ -86,6 +98,10 @@ class NumberType implements TypeInterface
         $schema = array(
             "type" => "number"
         );
+
+        if ($this->enum !== null) {
+            $schema["enum"] = $this->enum;
+        }
 
         if ($this->maximum !== null) {
             $schema["maximum"] = $this->maximum;

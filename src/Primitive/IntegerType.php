@@ -2,10 +2,14 @@
 
 namespace JsonSchema\Primitive;
 
+use JsonSchema\Exception;
 use JsonSchema\TypeInterface;
 
 class IntegerType implements TypeInterface
 {
+    /** @var array $enum */
+    protected $enum;
+
     /** @var bool $exclusiveMaximum */
     protected $exclusiveMaximum;
 
@@ -26,11 +30,16 @@ class IntegerType implements TypeInterface
      */
     public function __construct(array $annotations = [])
     {
+        $this->exclusiveMaximum = false;
+        $this->exclusiveMinimum = false;
+
         $this->parseAnnotations($annotations);
     }
 
     /**
-     * @param array $annotations
+     * @param string[] $annotations
+     *
+     * @throws Exception\MalformedAnnotation
      */
     protected function parseAnnotations(array $annotations)
     {
@@ -40,6 +49,14 @@ class IntegerType implements TypeInterface
                 $keyword = array_shift($parts);
 
                 switch ($keyword) {
+                    case "@enum":
+                        if (empty($parts)) {
+                            throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
+                        }
+
+                        $this->enum = $parts;
+                        break;
+
                     case "@exclusiveMaximum":
                         $this->exclusiveMaximum = true;
                         break;
@@ -48,73 +65,29 @@ class IntegerType implements TypeInterface
                         $this->exclusiveMinimum = true;
                         break;
 
-                    default:
-                        // Process keyword arguments.
+                    case "@maximum":
                         if (! isset($parts[0])) {
                             throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
                         }
 
-                        switch ($keyword) {
-                            case "@maximum":
-                                $this->maximum = (float) $parts[0];
-                                break;
-
-                            case "@minimum":
-                                $this->minimum = (float) $parts[0];
-                                break;
-
-                            case "@multipleOf":
-                                $this->multipleOf = (float) $parts[0];
-                                break;
-                        }
-                }
-            }
-            
-            if ($parts !== false) {
-                $keyword = array_shift($parts);
-                switch ($keyword) {
-                    case "@enum":
-                        if (! empty($parts)) {
-                            $this->enum = $parts;
-                        }
-                        break;
-
-                    case "@exclusiveMinimum":
-                        $this->exclusiveMinimum = true;
-                        break;
-
-                    case "@exclusiveMaximum":
-                        $this->exclusiveMaximum = true;
-                        break;
-
-                    case "@maximum":
                         $this->maximum = (int) $parts[0];
                         break;
 
                     case "@minimum":
+                        if (! isset($parts[0])) {
+                            throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
+                        }
+
                         $this->minimum = (int) $parts[0];
                         break;
 
                     case "@multipleOf":
+                        if (! isset($parts[0])) {
+                            throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
+                        }
+
                         $this->multipleOf = (float) $parts[0];
                         break;
-                }
-            }
-
-
-            if (!isset($parts[0]) || !isset($parts[1])) {
-                trigger_error("Malformed annotation {$annotation}!", E_USER_WARNING);
-            } else {
-                $keyword = $parts[0];
-                $value = $parts[1];
-                switch ($keyword) {
-
-                    
-
-
-
-                    default:
-                        trigger_error("Unknown annotation {$keyword}!", E_USER_NOTICE);
                 }
             }
         }
@@ -129,24 +102,28 @@ class IntegerType implements TypeInterface
             "type" => "integer"
         );
 
-        if ($this->multipleOf !== null) {
-            $schema["multipleOf"] = $this->multipleOf;
+        if ($this->enum !== null) {
+            $schema["enum"] = $this->enum;
         }
 
         if ($this->minimum !== null) {
             $schema["minimum"] = $this->minimum;
+
+            if ($this->exclusiveMinimum) {
+                $schema["exclusiveMinimum"] = $this->exclusiveMinimum;
+            }
         }
 
         if ($this->maximum !== null) {
             $schema["maximum"] = $this->maximum;
+
+            if ($this->exclusiveMaximum) {
+                $schema["exclusiveMaximum"] = $this->exclusiveMaximum;
+            }
         }
 
-        if ($this->exclusiveMinimum !== null) {
-            $schema["exclusiveMinimum"] = $this->exclusiveMinimum;
-        }
-
-        if ($this->exclusiveMaximum !== null) {
-            $schema["exclusiveMaximum"] = $this->exclusiveMaximum;
+        if ($this->multipleOf !== null) {
+            $schema["multipleOf"] = $this->multipleOf;
         }
 
         return $schema;

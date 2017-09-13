@@ -29,8 +29,8 @@ class ArrayList extends AbstractCollection
      */
     public function __construct($class, array $annotations = [])
     {
-        $this->uniqueItems = false;
         $this->items = array();
+        $this->uniqueItems = false;
 
         $types = preg_split('/\s?\|\s?/', $class);
         foreach ($types as $type) {
@@ -56,24 +56,25 @@ class ArrayList extends AbstractCollection
                 $keyword = array_shift($parts);
 
                 switch ($keyword) {
-                    case "@uniqueItems":
-                        $this->uniqueItems = true;
-                        break;
-
-                    default:
+                    case "@maxItems":
                         if (! isset($parts[0])) {
                             throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
                         }
 
-                        switch ($keyword) {
-                            case "@maxItems":
-                                $this->maxItems = (int) $parts[0];
-                                break;
+                        $this->maxItems = (int) $parts[0];
+                        break;
 
-                            case "@minItems":
-                                $this->minItems = (int) $parts[0];
-                                break;
+                    case "@minItems":
+                        if (! isset($parts[0])) {
+                            throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
                         }
+
+                        $this->minItems = (int) $parts[0];
+                        break;
+
+                    case "@uniqueItems":
+                        $this->uniqueItems = true;
+                        break;
                 }
             }
         }

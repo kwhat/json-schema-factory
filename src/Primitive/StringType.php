@@ -32,33 +32,42 @@ class StringType implements TypeInterface
     protected function parseAnnotations(array $annotations)
     {
         foreach ($annotations as $annotation) {
-            $parts = preg_split('/\s/', $annotation, 2);
+            $parts = preg_split('/\s/', $annotation);
 
-            if (! isset($parts[0]) || ! isset($parts[1])) {
-                throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
-            } else {
-                $keyword = array_shift($parts);
+            $keyword = array_shift($parts);
 
-                switch ($keyword) {
-                    case "@enum":
-                        $enums = preg_split('/\s/', $parts[0]);
-                        if ($enums !== false) {
-                            $this->enum = $enums;
-                        }
-                        break;
+            switch ($keyword) {
+                case "@enum":
+                    if (empty($parts)) {
+                        throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
+                    }
 
-                    case "@minLength":
-                        $this->minLength = (int) $parts[0];
-                        break;
+                    $this->enum = $parts;
+                    break;
 
-                    case "@maxLength":
-                        $this->maxLength = (int) $parts[0];
-                        break;
+                case "@minLength":
+                    if (! isset($parts[0])) {
+                        throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
+                    }
 
-                    case "@pattern":
-                        $this->pattern = (string) $parts[0];
-                        break;
-                }
+                    $this->minLength = (int) $parts[0];
+                    break;
+
+                case "@maxLength":
+                    if (! isset($parts[0])) {
+                        throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
+                    }
+
+                    $this->maxLength = (int) $parts[0];
+                    break;
+
+                case "@pattern":
+                    if (! isset($parts[0])) {
+                        throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
+                    }
+
+                    $this->pattern = (string) $parts[0];
+                    break;
             }
         }
     }
@@ -72,16 +81,16 @@ class StringType implements TypeInterface
             "type" => "string"
         );
 
-        if ($this->minLength !== null) {
-            $schema["minLength"] = $this->minLength;
+        if ($this->enum !== null) {
+            $schema["enum"] = $this->enum;
         }
 
         if ($this->maxLength !== null) {
             $schema["maxLength"] = $this->maxLength;
         }
 
-        if ($this->enum !== null) {
-            $schema["enum"] = $this->enum;
+        if ($this->minLength !== null) {
+            $schema["minLength"] = $this->minLength;
         }
 
         if ($this->pattern !== null) {
