@@ -49,7 +49,7 @@ class IntegerType extends AbstractSchema
             $keyword = array_shift($args);
             switch ($keyword) {
                 case "@enum":
-                    if (empty($args)) {
+                    if (! isset($args[0])) {
                         throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
                     }
 
