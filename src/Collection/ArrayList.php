@@ -9,6 +9,8 @@ use JsonSchema\SchemaInterface;
 
 class ArrayList extends AbstractSchema
 {
+    const TYPE = "array";
+
     /**
      * @enum csv ssv tsv pipes
      * @var string $collectionFormat
@@ -97,39 +99,5 @@ class ArrayList extends AbstractSchema
                 }
             }
         }
-    }
-
-    /**
-     * @return array
-     */
-    public function jsonSerialize()
-    {
-        $schema = array(
-            "type" => "array"
-        );
-
-        if ($this->title !== null) {
-            $schema["title"] = $this->title;
-        }
-
-        if ($this->description !== null) {
-            $schema["description"] = $this->description;
-        }
-
-        if (! empty($this->items)) {
-            $schema["items"] = $this->items;
-        }
-
-        if ($this->minItems !== null) {
-            $schema["minItems"] = $this->minItems;
-        }
-
-        if ($this->maxItems !== null) {
-            $schema["maxItems"] = $this->maxItems;
-        }
-
-        $schema["uniqueItems"] = $this->uniqueItems;
-
-        return $schema;
     }
 }

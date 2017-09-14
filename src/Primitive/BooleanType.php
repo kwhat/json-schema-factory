@@ -6,13 +6,15 @@ use JsonSchema\SchemaInterface;
 
 class BooleanType implements SchemaInterface
 {
+    const TYPE = "boolean";
+
     /**
      * @return array
      */
     public function jsonSerialize()
     {
         $schema = array(
-            "type" => "boolean"
+            "type" => static::TYPE
         );
 
         return $schema;

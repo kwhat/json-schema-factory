@@ -3,18 +3,58 @@
 namespace JsonSchema\Collection;
 
 use Doctrine\Common\Reflection;
-use JsonSchema\AbstractCollection;
+use JsonSchema\AbstractSchema;
 use JsonSchema\Doctrine;
 use JsonSchema\Exception;
 use JsonSchema\Factory;
-use JsonSchema\TypeInterface;
+use JsonSchema\Primitive\BooleanType;
+use JsonSchema\SchemaInterface;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionProperty;
 use stdClass;
 
-class ObjectMap extends AbstractCollection
+class ObjectMap extends AbstractSchema
 {
+    const TYPE = "object";
+
+    /**
+     * @var BooleanType|SchemaInterface $additionalProperties
+     */
+    public $additionalProperties;
+
+    /**
+     * @minimum 0
+     * @var int $maxProperties
+     */
+    public $maxProperties;
+
+    /**
+     * @minimum 0
+     * @var int $minProperties
+     */
+    public $minProperties;
+
+    /**
+     * @additionalProperties SchemaInterface
+     * @patternProperties .*
+     * @var ObjectMap $patternProperties
+     */
+    public $patternProperties;
+
+    /**
+     * @additionalProperties SchemaInterface
+     * @patternProperties [\w]+
+     * @var ObjectMap $properties
+     */
+    public $properties;
+
+    /**
+     * @var string[] $required
+     */
+    public $required;
+
+
     /** @var string $class */
     protected $class;
 
@@ -23,12 +63,6 @@ class ObjectMap extends AbstractCollection
 
     /** @var string[] $imports */
     protected $imports;
-
-    /** @var TypeInterface[] | string $properties */
-    protected $properties;
-
-    /** @var array $required */
-    protected $required;
 
     /**
      * @param string $class
@@ -207,17 +241,7 @@ class ObjectMap extends AbstractCollection
      */
     public function jsonSerialize()
     {
-        $schema = array(
-            "type" => "object"
-        );
-
-        if ($this->title !== null) {
-            $schema["title"] = $this->title;
-        }
-
-        if ($this->description !== null) {
-            $schema["description"] = $this->description;
-        }
+        $schema = parent::jsonSerialize();
 
         if (is_array($this->properties)) {
             $schema["properties"] = $this->properties;

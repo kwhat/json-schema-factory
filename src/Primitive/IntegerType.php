@@ -2,9 +2,6 @@
 
 namespace JsonSchema\Primitive;
 
-use JsonSchema\AbstractSchema;
-use JsonSchema\Exception;
-
 class IntegerType extends NumberType
 {
     /**

@@ -2,16 +2,13 @@
 
 namespace JsonSchema;
 
-use JsonSchema\Primitive\BooleanType;
-use JsonSchema\Primitive\IntegerType;
-use JsonSchema\Primitive\NullType;
-use JsonSchema\Primitive\NumberType;
-use JsonSchema\Primitive\StringType;
 use stdClass;
 
 abstract class AbstractSchema implements SchemaInterface
 {
     /**
+     * @uniqueItems
+     * @minItems 1
      * @var string[] $enum
      */
     public $enum;
@@ -25,16 +22,32 @@ abstract class AbstractSchema implements SchemaInterface
      */
     public $type;
 
+    /**
+     * @minItems 1
+     * @var AbstractSchema[] $allOf
+     */
     public $allOf;
 
+    /**
+     * @minItems 1
+     * @var AbstractSchema[] $anyOf
+     */
     public $anyOf;
 
+    /**
+     * @minItems 1
+     * @var AbstractSchema[] $oneOf
+     */
     public $oneOf;
 
+    /**
+     * @minItems 1
+     * @var SchemaInterface $not
+     */
     public $not;
 
     /**
-     * @generic BooleanType | IntegerType | NullType | NumberType | StringType
+     * @generic SchemaInterface
      * @var stdClass $definitions
      */
     public $definitions;
@@ -48,13 +61,22 @@ abstract class AbstractSchema implements SchemaInterface
      * @var string $description
      */
     public $description;
+
+    /**
+     * @var mixed $default
+     */
+    public $default;
+
     /**
      * @inheritdoc
      */
     public function jsonSerialize()
     {
-        // Little trick to only return public properties from this scope.
-        return call_user_func("get_object_vars", $this);
+        // Trick to only return public properties from this scope.
+        $schema = call_user_func("get_object_vars", $this);
+        $schema["type"] = static::TYPE;
+
+        return $schema;
     }
 
     /**

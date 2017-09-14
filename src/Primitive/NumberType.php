@@ -7,6 +7,8 @@ use JsonSchema\Exception;
 
 class NumberType extends AbstractSchema
 {
+    const TYPE = "number";
+
     /**
      * @var bool $exclusiveMaximum
      */
@@ -102,7 +104,6 @@ class NumberType extends AbstractSchema
     public function jsonSerialize()
     {
         $schema = parent::jsonSerialize();
-        $schema["type"] = "number;";
 
         if (! isset($schema["maximum"]) || ! $this->exclusiveMaximum) {
             unset($schema["exclusiveMaximum"]);

@@ -7,6 +7,8 @@ use JsonSchema\Exception;
 
 class StringType extends AbstractSchema
 {
+    const TYPE = "string";
+
     /**
      * @enum binary byte date date-time password
      * @var string $format
@@ -78,16 +80,5 @@ class StringType extends AbstractSchema
                     break;
             }
         }
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function jsonSerialize()
-    {
-        $schema = parent::jsonSerialize();
-        $schema["type"] = "string;";
-
-        return $schema;
     }
 }
