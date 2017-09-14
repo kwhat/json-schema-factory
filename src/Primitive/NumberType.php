@@ -7,22 +7,35 @@ use JsonSchema\Exception;
 
 class NumberType extends AbstractSchema
 {
-    /** @var int[] $enum */
-    public $enum;
-
-    /** @var bool $exclusiveMaximum */
+    /**
+     * @var bool $exclusiveMaximum
+     */
     public $exclusiveMaximum;
 
-    /** @var bool $exclusiveMinimum */
+    /**
+     * @var bool $exclusiveMinimum
+     */
     public $exclusiveMinimum;
 
-    /** @var float $maximum */
+    /**
+     * @enum float double
+     * @var string $format
+     */
+    public $format;
+
+    /**
+     * @var float $maximum
+     */
     public $maximum;
 
-    /** @var float $minimum */
+    /**
+     * @var float $minimum
+     */
     public $minimum;
 
-    /** @var float $multipleOf */
+    /** 
+     * @var float $multipleOf 
+     */
     public $multipleOf;
 
     /**
@@ -48,14 +61,6 @@ class NumberType extends AbstractSchema
 
             $keyword = array_shift($args);
             switch ($keyword) {
-                case "@enum":
-                    if (! isset($args[0])) {
-                        throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
-                    }
-
-                    $this->enum = $args;
-                    break;
-
                 case "@exclusiveMaximum":
                     $this->exclusiveMaximum = true;
                     break;

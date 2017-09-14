@@ -9,23 +9,38 @@ use JsonSchema\SchemaInterface;
 
 class ArrayList extends AbstractSchema
 {
-    /** @var SchemaInterface[] $items */
-    protected $items;
-
-    /** @var int|null $maxItems */
-    protected $maxItems;
-
-    /** @var int $minItems */
-    protected $minItems;
-
-    /** @var bool $uniqueItems */
-    protected $uniqueItems;
+    /**
+     * @enum csv ssv tsv pipes
+     * @var string $collectionFormat
+     */
+    public $collectionFormat;
 
     /**
-     * ArrayList constructor.
-     *
+     * @required
+     * @var SchemaInterface[] $items
+     */
+    public $items;
+
+    /**
+     * @var int $maxItems
+     */
+    public $maxItems;
+
+    /**
+     * @var int $minItems
+     */
+    public $minItems;
+
+    /**
+     * @var bool $uniqueItems
+     */
+    public $uniqueItems;
+
+    /**
      * @param string $class
      * @param string[] $annotations
+     *
+     * @throws Exception\MalformedAnnotation
      */
     public function __construct($class, array $annotations = [])
     {

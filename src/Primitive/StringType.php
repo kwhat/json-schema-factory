@@ -7,16 +7,25 @@ use JsonSchema\Exception;
 
 class StringType extends AbstractSchema
 {
-    /** @var string[] $enum */
-    public $enum;
+    /**
+     * @enum binary byte date date-time password
+     * @var string $format
+     */
+    public $format;
 
-    /** @var int $maxLength */
+    /**
+     * @var int $maxLength 
+     */
     public $maxLength;
 
-    /** @var int $minLength */
+    /** 
+     * @var int $minLength 
+     */
     public $minLength;
 
-    /** @var string $pattern */
+    /** 
+     * @var string $pattern 
+     */
     public $pattern;
     
     public function __construct(array $annotations = [])
