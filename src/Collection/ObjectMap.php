@@ -38,14 +38,14 @@ class ObjectMap extends AbstractSchema
     /**
      * @additionalProperties SchemaInterface
      * @patternProperties .*
-     * @var ObjectMap $patternProperties
+     * @var stdClass $patternProperties
      */
     public $patternProperties;
 
     /**
      * @additionalProperties SchemaInterface
-     * @patternProperties [\w-]+
-     * @var ObjectMap $properties
+     * @patternProperties [\w]+
+     * @var stdClass $properties
      */
     public $properties;
 
@@ -109,12 +109,21 @@ class ObjectMap extends AbstractSchema
 
             // Check for a description.
             if (preg_match('/^[^@]+/', $docComment, $match)) {
-                $this->description($match[0]);
+                $this->title = $match[0];
             }
 
             // Match all annotations in the docComment.
-            if (preg_match_all('/(@[\w+\-])[^\S\x0a\x0d]?(.*)$/m', $docComment, $match)) {
-                $tags = array_combine($match[1], $match[2]);
+            if (preg_match_all('/^@[\w]+.*$/m', $docComment, $match)) {
+                // Append property name for implicit var annotations.
+                foreach ($match as $key => $value) {
+                    if (preg_match('/^(@var[\s]+[\w\\]+\[?\]?)([\s]+[^$].+)?$/', $value, $token)) {
+                        $match[$key] = "$token[1] {$property->getName()}";
+
+                        if (isset($token[2])) {
+                            $match[$key] .= $token[2];
+                        }
+                    }
+                }
 
                 if (isset($tags["@required"])) {
                     $this->required[] = $property->getName();
@@ -189,34 +198,35 @@ class ObjectMap extends AbstractSchema
     protected function parseAnnotations(array $annotations)
     {
         foreach ($annotations as $annotation) {
-            $parts = preg_split('/\s/', $annotation, 2);
+            $token = preg_split('/\s/', $annotation, 2);
 
-            if ($parts !== false) {
-                $keyword = array_shift($parts);
+            if ($token !== false) {
+                $keyword = array_shift($token);
+                $required = false;
 
                 switch ($keyword) {
                     case "@additionalProperties":
-                        if (! isset($parts[0])) {
+                        if (! isset($token[0])) {
                             throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
                         }
 
-                        $this->additionalProperties = $this->getFullNamespace($parts[0]);
+                        $this->additionalProperties = $this->getFullNamespace($token[0]);
                         break;
 
                     case "@maxProperties":
-                        if (! isset($parts[0])) {
+                        if (! isset($token[0])) {
                             throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
                         }
 
-                        $this->minItems = (int) $parts[0];
+                        $this->minItems = (int) $token[0];
                         break;
 
                     case "@minProperties":
-                        if (! isset($parts[0])) {
+                        if (! isset($token[0])) {
                             throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
                         }
 
-                        $this->minItems = (int) $parts[0];
+                        $this->minItems = (int) $token[0];
                         break;
 
                     case "@patternProperties":
@@ -233,14 +243,48 @@ class ObjectMap extends AbstractSchema
                          * @patternProperties [\w-]+
                          * @var ObjectMap $properties
                          */
-                    case "@properties":
+
 
                         /**
                          * @minLength 1
                          * @var string[] $required
                          */
                     case "@required":
+                        $required = true;
+                        break;
 
+                    //   "@properties":
+                    case "@var":
+                        if (! isset($token[0]) || ! isset($token[1])) {
+                            throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
+                        }
+
+                        // Get multiple types.
+                        $types = explode("|", $token[0]);
+                        foreach ($types as $type) {
+                            $namespace = $this->getFullNamespace($type);
+                            if ($namespace !== false) {
+                                $type = $namespace;
+                            }
+
+                            $schemas[] = Factory::create($type, $annotations);
+                        }
+
+                        $count = count($schemas);
+                        if ($count == 1) {
+                            $type = $schemas[0];
+                        } else if ($count > 1) {
+
+                            $schema = Factory::create(stdClass::class);
+                            $schema->an
+
+                            $type = array("oneOf" => $schemas);
+                        } else {
+                            throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
+                        }
+
+                        $this->properties[substr($token[1], 1)] = $type;
+                        break;
                 }
             }
         }

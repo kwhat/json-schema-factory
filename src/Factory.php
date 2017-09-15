@@ -8,7 +8,7 @@ class Factory
      * @param string $class
      * @param string[] $annotations
      *
-     * @return SchemaInterface
+     * @return AbstractSchema
      * @throws Exception\ClassNotFound
      */
     public static function create($class, array $annotations = [])
@@ -46,7 +46,7 @@ class Factory
                 $schema = new Collection\ObjectMap($class, $annotations);
         }
 
-        /** @var SchemaInterface $schema */
+        /** @var AbstractSchema $schema */
         return $schema;
     }
 }
