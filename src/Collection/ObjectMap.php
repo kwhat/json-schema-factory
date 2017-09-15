@@ -44,12 +44,13 @@ class ObjectMap extends AbstractSchema
 
     /**
      * @additionalProperties SchemaInterface
-     * @patternProperties [\w]+
+     * @patternProperties [\w-]+
      * @var ObjectMap $properties
      */
     public $properties;
 
     /**
+     * @minLength 1
      * @var string[] $required
      */
     public $required;
@@ -75,39 +76,22 @@ class ObjectMap extends AbstractSchema
         $this->properties = array();
         $this->required = array();
 
-        if ($class == stdClass::class) {
-            $this->class = stdClass::class;
-            $this->namespace = "";
-            $this->imports = array();
-
-            // Parse the line that we matched, order matters.
-            $parsed = $this->parseAnnotations($annotations);
-            $this->properties = '[\w]+';
-            if (isset($parsed["@pattern"]) && isset($parsed["@pattern"][0])) {
-                $this->properties = $parsed["@pattern"][0];
-            }
-
-            if (isset($parsed["@generic"]) && isset($parsed["@generic"][0])) {
-                $this->class = $parsed["@pattern"][0];
-            }
-        } else {
-            try {
-                $reflectionClass = new ReflectionClass($class);
-            } catch (ReflectionException $e) {
-                throw new Exception\ClassNotFound($e->getMessage(), $e->getCode(), $e);
-            }
-
-            $classFinder = new Doctrine\AutoloadClassFinder();
-            $reflectionParser = new Reflection\StaticReflectionParser($reflectionClass->getName(), $classFinder);
-
-            $this->class = $reflectionClass->getShortName();
-            $this->namespace = $reflectionClass->getNamespaceName();
-            $this->imports = $reflectionParser->getUseStatements();
-
-            /** @var ReflectionProperty $property */
-            $properties = $reflectionClass->getProperties(ReflectionProperty::IS_PUBLIC);
-            $this->parseProperties($properties);
+        try {
+            $reflectionClass = new ReflectionClass($class);
+        } catch (ReflectionException $e) {
+            throw new Exception\ClassNotFound($e->getMessage(), $e->getCode(), $e);
         }
+
+        $classFinder = new Doctrine\AutoloadClassFinder();
+        $reflectionParser = new Reflection\StaticReflectionParser($reflectionClass->getName(), $classFinder);
+
+        $this->class = $reflectionClass->getShortName();
+        $this->namespace = $reflectionClass->getNamespaceName();
+        $this->imports = $reflectionParser->getUseStatements();
+
+        /** @var ReflectionProperty $property */
+        $properties = $reflectionClass->getProperties(ReflectionProperty::IS_PUBLIC);
+        $this->parseProperties($properties);
 
         $this->parseAnnotations($annotations);
     }
@@ -124,8 +108,8 @@ class ObjectMap extends AbstractSchema
             $docComment = $property->getDocComment();
 
             // Check for a description.
-            if (preg_match('/^\w+/', $docComment, $match)) {
-                $this->setDescription($match[0]);
+            if (preg_match('/^[^@]+/', $docComment, $match)) {
+                $this->description($match[0]);
             }
 
             // Match all annotations in the docComment.
@@ -195,6 +179,73 @@ class ObjectMap extends AbstractSchema
 
         return $parsed;
     }
+
+
+    /**
+     * @param string[] $annotations
+     *
+     * @throws Exception\MalformedAnnotation
+     */
+    protected function parseAnnotations(array $annotations)
+    {
+        foreach ($annotations as $annotation) {
+            $parts = preg_split('/\s/', $annotation, 2);
+
+            if ($parts !== false) {
+                $keyword = array_shift($parts);
+
+                switch ($keyword) {
+                    case "@additionalProperties":
+                        if (! isset($parts[0])) {
+                            throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
+                        }
+
+                        $this->additionalProperties = $this->getFullNamespace($parts[0]);
+                        break;
+
+                    case "@maxProperties":
+                        if (! isset($parts[0])) {
+                            throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
+                        }
+
+                        $this->minItems = (int) $parts[0];
+                        break;
+
+                    case "@minProperties":
+                        if (! isset($parts[0])) {
+                            throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
+                        }
+
+                        $this->minItems = (int) $parts[0];
+                        break;
+
+                    case "@patternProperties":
+                        $this->patternProperties = Factory::create("object", $annotations);
+
+                        /**
+                         * @additionalProperties SchemaInterface
+                         * @patternProperties .*
+                         * @var ObjectMap
+                         */
+
+                        /**
+                         * @additionalProperties SchemaInterface
+                         * @patternProperties [\w-]+
+                         * @var ObjectMap $properties
+                         */
+                    case "@properties":
+
+                        /**
+                         * @minLength 1
+                         * @var string[] $required
+                         */
+                    case "@required":
+
+                }
+            }
+        }
+    }
+
 
     /**
      * @param string $type

@@ -64,7 +64,7 @@ class ArrayList extends AbstractSchema
     }
 
     /**
-     * @param array $annotations
+     * @param string[] $annotations
      *
      * @throws Exception\MalformedAnnotation
      */
