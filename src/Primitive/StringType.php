@@ -42,8 +42,10 @@ class StringType extends AbstractSchema
      */
     protected function parseAnnotations(array $annotations)
     {
+        parent::parseAnnotations($annotations);
+
         foreach ($annotations as $annotation) {
-            $args = preg_split('/\s/', $annotation);
+            $args = preg_split('/[\s]+/', $annotation, 2);
 
             $keyword = array_shift($args);
             switch ($keyword) {
@@ -52,7 +54,7 @@ class StringType extends AbstractSchema
                         throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
                     }
 
-                    $this->enum = $args;
+                    $this->enum = explode("|", $args[0]);
                     break;
 
                 case "@minLength":

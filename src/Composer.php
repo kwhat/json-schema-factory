@@ -2,6 +2,9 @@
 
 namespace JsonSchema;
 
+use Composer\Installer;
+use Composer\Package;
+use Composer\Repository;
 use Composer\Script;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -14,14 +17,14 @@ class Composer
         /** @var \Composer\Composer $composer */
         $composer = $event->getComposer();
 
-        /** @var \Composer\Installer\InstallationManager $installationManager */
+        /** @var Installer\InstallationManager $installationManager */
         $installationManager = $composer->getInstallationManager();
 
         /** @var \Composer\Autoload\AutoloadGenerator $autoloadGenerator */
         $autoloadGenerator = $composer->getAutoloadGenerator();
         $autoloadGenerator->setDevMode(false);
 
-        /** @var \Composer\Package\PackageInterface $mainPackage */
+        /** @var Package\PackageInterface $mainPackage */
         $mainPackage = $composer->getPackage();
 
         $autoloadMap = $mainPackage->getAutoload();
@@ -29,10 +32,10 @@ class Composer
         /** @var string $installDir */
 //        $installDir = realpath($installationManager->getInstallPath($mainPackage));
 
-        /** @var \Composer\Repository\InstalledRepositoryInterface $repoManager */
+        /** @var Repository\InstalledRepositoryInterface $repoManager */
 //        $repoManager = $composer->getRepositoryManager()->getLocalRepository();
 
-        /** @var \Composer\Package\CompletePackageInterface[] $packageMap */
+        /** @var Package\CompletePackageInterface[] $packageMap */
         //$packageMap = $autoloadGenerator->buildPackageMap($installationManager, $mainPackage, $repoManager->getCanonicalPackages());
 //        $packageMap = $autoloadGenerator->buildPackageMap($installationManager, $mainPackage, array());
         /** @var array $autoloadMap */
@@ -42,10 +45,10 @@ class Composer
 
 
 
-        /** @var \Composer\Installer\InstallationManager $installationManager */
+        /** @var Installer\InstallationManager $installationManager */
 //        $installationManager = $composer->getInstallationManager();
 
-        /** @var \Composer\Package\PackageInterface $mainPackage */
+        /** @var Package\PackageInterface $mainPackage */
 //        $mainPackage = $composer->getPackage();
 
         /** @var string $installDir */
@@ -83,7 +86,7 @@ class Composer
                                     $pathInfo = pathinfo($class);
                                     $class = "{$namespace}" . str_replace(DIRECTORY_SEPARATOR, "\\", $class);
 
-                                    if (is_subclass_of($class, AbstractJson::class, true)) {
+                                    if (is_subclass_of($class, AbstractSchema::class, true)) {
                                         $args = $event->getArguments();
                                         $prefix = "schema" . DIRECTORY_SEPARATOR;
 
@@ -99,7 +102,7 @@ class Composer
                                             mkdir($schemaPath, 0755, true);
                                         }
 
-                                        /** @var AbstractJson $class */
+                                        /** @var AbstractSchema $class */
                                         $schema = $class::schemaSerialize();
                                         file_put_contents($schemaPath . DIRECTORY_SEPARATOR . "{$pathInfo["filename"]}.json",
                                             json_encode($schema, JSON_PRETTY_PRINT));

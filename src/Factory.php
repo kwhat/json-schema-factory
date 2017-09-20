@@ -13,6 +13,7 @@ class Factory
      */
     public static function create($class, array $annotations = [])
     {
+        echo "Factory create {$class} [" . implode(", ", $annotations) . "]\n";
         switch ($class) {
             case "string":
                 $schema = new Primitive\StringType($annotations);
@@ -35,6 +36,10 @@ class Factory
 
             case "null":
                 $schema = new Primitive\NullType();
+                break;
+
+            case "mixed":
+                $schema = "*";
                 break;
 
             // Match primitive and object array notation.

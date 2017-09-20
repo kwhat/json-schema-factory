@@ -2,7 +2,10 @@
 
 namespace JsonSchema\OpenAPI\v2_0\Security;
 
+use JsonSchema;
 use JsonSchema\AbstractSchema;
+use JsonSchema\Collection;
+use JsonSchema\Factory;
 use stdClass;
 
 class OAuth2 extends AbstractSchema
@@ -30,7 +33,7 @@ class OAuth2 extends AbstractSchema
      */
     public static function schemaSerialize()
     {
-        $schema = JsonSchema\Factory::create(static::class);
+        $schema = Factory::create(static::class);
 
         return $schema;
     }

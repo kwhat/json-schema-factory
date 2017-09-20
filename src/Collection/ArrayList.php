@@ -5,7 +5,6 @@ namespace JsonSchema\Collection;
 use JsonSchema\AbstractSchema;
 use JsonSchema\Exception;
 use JsonSchema\Factory;
-use JsonSchema\SchemaInterface;
 
 class ArrayList extends AbstractSchema
 {
@@ -19,16 +18,18 @@ class ArrayList extends AbstractSchema
 
     /**
      * @required
-     * @var SchemaInterface[] $items
+     * @var AbstractSchema[] $items
      */
     public $items;
 
     /**
+     * @minimum 0
      * @var int $maxItems
      */
     public $maxItems;
 
     /**
+     * @minimum 0
      * @var int $minItems
      */
     public $minItems;
@@ -49,10 +50,26 @@ class ArrayList extends AbstractSchema
         $this->items = array();
         $this->uniqueItems = false;
 
-        $types = preg_split('/\s?\|\s?/', $class);
+        $types = preg_split('/\|/', $class);
+
+        $handle = fopen ("php://stdin","r");
+        $line = fgets($handle);
+        fclose($handle);
+
+        $itmes = array();
         foreach ($types as $type) {
-            if (preg_match('/(.*)\[\s?\]/', $type, $match)) {
-                $this->items[] = Factory::create($match[1], $annotations);
+            if (preg_match('/(.*)\[\]/', $type, $match)) {
+
+                if ($match[0] == $class) {
+                    /** @var ArrayList $item */
+                    $item = Factory::create($match[1]);
+                    $item->items = array(
+                        "\$ref" => "#"
+                    );
+                    $this->items[] = $item;
+                } else {
+                    $this->items[] = Factory::create($match[1], $annotations);
+                }
             }
         }
 
@@ -71,7 +88,7 @@ class ArrayList extends AbstractSchema
     protected function parseAnnotations(array $annotations)
     {
         foreach ($annotations as $annotation) {
-            $parts = preg_split('/\s/', $annotation, 2);
+            $parts = preg_split('/[\s]+/', $annotation, 2);
 
             if ($parts !== false) {
                 $keyword = array_shift($parts);

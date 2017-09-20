@@ -31,7 +31,7 @@ class Header extends AbstractSchema
      * @required
      * @var ArrayList | BooleanType | IntegerType | NumberType | StringType $type
      */
-    protected $type;
+    public $type;
 
     /**
      * @inheritdoc

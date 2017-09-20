@@ -17,7 +17,7 @@ abstract class AbstractSchema implements SchemaInterface
      * @required
      * @uniqueItems
      * @minItems 1
-     * @enum array boolean integer number null object string
+     * @enum array|boolean|integer|number|null|object|string
      * @var string|string[] $type
      */
     public $type;
@@ -42,12 +42,12 @@ abstract class AbstractSchema implements SchemaInterface
 
     /**
      * @minItems 1
-     * @var SchemaInterface $not
+     * @var AbstractSchema $not
      */
     public $not;
 
     /**
-     * @generic SchemaInterface
+     * @generic AbstractSchema
      * @var stdClass $definitions
      */
     public $definitions;
@@ -68,6 +68,30 @@ abstract class AbstractSchema implements SchemaInterface
     public $default;
 
     /**
+     * @param string[] $annotations
+     *
+     * @throws Exception\MalformedAnnotation
+     */
+    protected function parseAnnotations(array $annotations)
+    {
+        foreach ($annotations as $annotation) {
+            $args = preg_split('/[\s]+/', $annotation, 2);
+
+            $keyword = array_shift($args);
+            switch ($keyword) {
+                case "@enum":
+                    if (! isset($args[0])) {
+                        throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
+                    }
+
+                    $this->enum = explode("|", $args[0]);
+                    break;
+
+            }
+        }
+    }
+
+    /**
      * @inheritdoc
      */
     public function jsonSerialize()
@@ -75,6 +99,12 @@ abstract class AbstractSchema implements SchemaInterface
         // Trick to only return public properties from this scope.
         $schema = call_user_func("get_object_vars", $this);
         $schema["type"] = static::TYPE;
+
+        /*
+        $schema = array_filter($schema, function ($property) {
+            return $property !== null;
+        });
+        */
 
         return $schema;
     }

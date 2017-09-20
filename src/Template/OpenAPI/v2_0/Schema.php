@@ -3,7 +3,6 @@
 namespace JsonSchema\OpenAPI\v2_0;
 
 use JsonSchema\AbstractSchema;
-use JsonSchema\Collection;
 use stdClass;
 
 class Schema extends AbstractSchema
@@ -88,7 +87,7 @@ class Schema extends AbstractSchema
     public $tags;
 
     /**
-     * @var ExternalDocumentation $externalDocs
+     * @var Schema\ExternalDocumentation $externalDocs
      */
     public $externalDocs;
 }
