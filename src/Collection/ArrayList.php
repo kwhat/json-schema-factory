@@ -50,26 +50,12 @@ class ArrayList extends AbstractSchema
         $this->items = array();
         $this->uniqueItems = false;
 
-        $types = preg_split('/\|/', $class);
+        if (preg_match('/([\w\\]+)\[(string(\|int)?)?(int(\|string)?)?\]$/', $class, $match)) {
+            $match = array_filter($match);
+            $this->items[] = Factory::create($match[1], $annotations);
 
-        $handle = fopen ("php://stdin","r");
-        $line = fgets($handle);
-        fclose($handle);
+            if (isset($match[3]) && strpos($match[3], "string") !== false) {
 
-        $itmes = array();
-        foreach ($types as $type) {
-            if (preg_match('/(.*)\[\]/', $type, $match)) {
-
-                if ($match[0] == $class) {
-                    /** @var ArrayList $item */
-                    $item = Factory::create($match[1]);
-                    $item->items = array(
-                        "\$ref" => "#"
-                    );
-                    $this->items[] = $item;
-                } else {
-                    $this->items[] = Factory::create($match[1], $annotations);
-                }
             }
         }
 

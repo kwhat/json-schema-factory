@@ -5,6 +5,13 @@ namespace JsonSchema;
 class Factory
 {
     /**
+     * Track definitions by schema path key.
+     *
+     * @var AbstractSchema[string] $definitions
+     */
+    protected static $definitions = array();
+
+    /**
      * @param string $class
      * @param string[] $annotations
      *
@@ -14,6 +21,7 @@ class Factory
     public static function create($class, array $annotations = [])
     {
         echo "Factory create {$class} [" . implode(", ", $annotations) . "]\n";
+
         switch ($class) {
             case "string":
                 $schema = new Primitive\StringType($annotations);
@@ -43,7 +51,7 @@ class Factory
                 break;
 
             // Match primitive and object array notation.
-            case preg_match('/(.+)\[\s?\]$/', $class) == 1:
+            case preg_match('/^([\w\\]+)\[(string(\|int)?)?(int(\|string)?)?\]$/', $class) == 1:
                 $schema = new Collection\ArrayList($class, $annotations);
                 break;
 

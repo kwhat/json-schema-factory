@@ -183,28 +183,15 @@ class ObjectMap extends AbstractSchema
                             throw new Exception\MalformedAnnotation("Malformed annotation {$this->class}::{$annotation}!");
                         }
 
-                        // Get multiple types.
-                        $types = explode("|", $token[0]);
+                        // Get multiple types, skipping string[int|string] notation.
+                        $types = preg_split('/(?<!string|int)\|/', $token[0]);
                         foreach ($types as $type) {
                             $namespace = $this->getFullNamespace($type);
                             if ($namespace !== false) {
                                 $type = $namespace;
                             }
 
-                            echo "\tCreating {$type} from {$this->class}\n";
-
-                            if ($type == $this->class) {
-                                /** @var ArrayList $item */
-                                $item = Factory::create($type);
-                                $item->items = array(
-                                    "\$ref" => "#"
-                                );
-                                $schemas[] = $item;
-                            } else if ($type == "{$this->class}[]") {
-
-                            } else {
-                                $schemas[] = Factory::create($type, $annotations);
-                            }
+                            $schemas[] = Factory::create($type, $annotations);
                         }
 
                         $count = count($schemas);
