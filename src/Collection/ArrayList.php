@@ -47,21 +47,10 @@ class ArrayList extends AbstractSchema
      */
     public function __construct($class, array $annotations = [])
     {
-        $this->items = array();
+        $this->items = array(
+            Factory::create($class, $annotations)
+        );
         $this->uniqueItems = false;
-
-        if (preg_match('/([\w\\]+)\[(string(\|int)?)?(int(\|string)?)?\]$/', $class, $match)) {
-            $match = array_filter($match);
-            $this->items[] = Factory::create($match[1], $annotations);
-
-            if (isset($match[3]) && strpos($match[3], "string") !== false) {
-
-            }
-        }
-
-        if (! isset($this->items[0])) {
-            throw new Exception\MalformedAnnotation("Missing annotation @var!");
-        }
 
         $this->parseAnnotations($annotations);
     }
@@ -73,6 +62,8 @@ class ArrayList extends AbstractSchema
      */
     protected function parseAnnotations(array $annotations)
     {
+        parent::parseAnnotations($annotations);
+
         foreach ($annotations as $annotation) {
             $parts = preg_split('/[\s]+/', $annotation, 2);
 

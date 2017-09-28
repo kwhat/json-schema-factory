@@ -51,11 +51,22 @@ class Factory
                 break;
 
             // Match primitive and object array notation.
-            case preg_match('/^([\w\\]+)\[(string(\|int)?)?(int(\|string)?)?\]$/', $class) == 1:
-                $schema = new Collection\ArrayList($class, $annotations);
+            case preg_match('/^([\w\\]+)\[([\w|]*)\]$/', $class, $match) == 1:
+                if (strpos($match[2], "string") !== false) {
+                    $class = stdClass::class;
+                }
+
+                if (empty($match[2]) || strpos($match[2], "int") !== false) {
+
+                }
+
+                static::$definitions[$match[1]] = null;
+
+                $schema = new Collection\ArrayList($match[1], $annotations);
                 break;
 
             default:
+                static::$definitions[$class] = null;
                 $schema = new Collection\ObjectMap($class, $annotations);
         }
 
