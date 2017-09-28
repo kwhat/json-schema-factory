@@ -17,6 +17,7 @@ class Factory
      *
      * @return AbstractSchema
      * @throws Exception\ClassNotFound
+     * @throws Exception\MalformedAnnotation
      */
     public static function create($class, array $annotations = [])
     {
@@ -50,19 +51,41 @@ class Factory
                 $schema = "*";
                 break;
 
-            // Match primitive and object array notation.
-            case preg_match('/^([\w\\]+)\[([\w|]*)\]$/', $class, $match) == 1:
-                if (strpos($match[2], "string") !== false) {
-                    $class = stdClass::class;
+            // Match primitive and object array notation with optional string|int keys.
+            case preg_match('/^([\w\\]+)\[(.*)\]$/', $class, $match) == 1:
+                $keySchemas = array();
+                $keyTypes = explode("|", $match[2]);
+                foreach ($keyTypes as $type) {
+                    switch ($type) {
+                        case "string":
+                            // Interpret PHP array map's as JSON objects.
+                            $keySchemas[] = new Collection\ObjectMap(stdClass::class, $annotations);
+                            break;
+
+                        case "":
+                            // Assume int index if not specified.
+                        case "int":
+                        case "integer":
+                            $keySchemas[] = new Collection\ArrayList($match[1], $annotations);
+                            break;
+
+                        default:
+                            throw new Exception\MalformedAnnotation("Arrays may only have keys of type string or int!");
+                    }
                 }
 
-                if (empty($match[2]) || strpos($match[2], "int") !== false) {
+                if (count($keySchemas) == 1) {
+                    $schema = $keySchemas[0];
+                } else if (count($keySchemas) > 1) {
+                    $schema = new Collection\ObjectMap(stdClass::class);
+                    $schema->anyOf = $keySchemas;
+                } else {
 
                 }
 
                 static::$definitions[$match[1]] = null;
 
-                $schema = new Collection\ArrayList($match[1], $annotations);
+
                 break;
 
             default:
