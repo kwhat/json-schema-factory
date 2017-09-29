@@ -2,6 +2,8 @@
 
 namespace JsonSchema;
 
+use JsonSchema\Primitive\OneOf;
+
 class Factory
 {
     /**
@@ -53,39 +55,40 @@ class Factory
 
             // Match primitive and object array notation with optional string|int keys.
             case preg_match('/^([\w\\]+)\[(.*)\]$/', $class, $match) == 1:
-                $keySchemas = array();
-                $keyTypes = explode("|", $match[2]);
-                foreach ($keyTypes as $type) {
-                    switch ($type) {
-                        case "string":
+                static::$definitions[$class] = null;
+
+                switch ($match[2]) {
+                    case "":
+                        // Assume int index if not specified.
+                    case "int":
+                    case "integer":
+                        $keySchemas[] = new Collection\ArrayList($match[1], $annotations);
+                        break;
+
+                    case "string":
+                        // Add the map type to the catch all pattern property.
+                        $annotations[] = "@patternProperties {$match[1]} .*";
+
+                        // Interpret PHP array map's as JSON objects.
+                        $keySchemas[] = new Collection\ObjectMap(stdClass::class, $annotations);
+                        break;
+
+                    case "string|int":
+                    case "int|string":
+                        // Add the map type to the catch all pattern property.
+                        $annotations[] = "@patternProperties {$match[1]} .*";
+
+                        $schema = new OneOf(array(
+                            new Collection\ArrayList($match[1], $annotations),
+
                             // Interpret PHP array map's as JSON objects.
-                            $keySchemas[] = new Collection\ObjectMap(stdClass::class, $annotations);
-                            break;
+                            $keySchemas[] = new Collection\ObjectMap(stdClass::class, $annotations)
+                        ));
+                        break;
 
-                        case "":
-                            // Assume int index if not specified.
-                        case "int":
-                        case "integer":
-                            $keySchemas[] = new Collection\ArrayList($match[1], $annotations);
-                            break;
-
-                        default:
-                            throw new Exception\MalformedAnnotation("Arrays may only have keys of type string or int!");
-                    }
+                    default:
+                        throw new Exception\MalformedAnnotation("Arrays may only have keys of type string or int!");
                 }
-
-                if (count($keySchemas) == 1) {
-                    $schema = $keySchemas[0];
-                } else if (count($keySchemas) > 1) {
-                    $schema = new Collection\ObjectMap(stdClass::class);
-                    $schema->anyOf = $keySchemas;
-                } else {
-
-                }
-
-                static::$definitions[$match[1]] = null;
-
-
                 break;
 
             default:
