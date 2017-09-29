@@ -169,6 +169,11 @@ class ObjectMap extends AbstractSchema
                         break;
 
                     case "@patternProperties":
+                        // FIXME This should take something in the following format:
+                        // "patternProperties": {
+                        //     "^S_": { "type": "string" },
+                        //     "^I_": { "type": "integer" }
+                        //  }
                         $this->patternProperties = Factory::create(stdClass::class, $annotations);
                         break;
 
