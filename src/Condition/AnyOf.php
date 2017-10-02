@@ -1,6 +1,6 @@
 <?php
 
-namespace JsonSchema\Primitive;
+namespace JsonSchema\Condition;
 
 use JsonSchema\SchemaInterface;
 

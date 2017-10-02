@@ -2,7 +2,7 @@
 
 namespace JsonSchema;
 
-use JsonSchema\Primitive\OneOf;
+use stdClass;
 
 class Factory
 {
@@ -55,6 +55,12 @@ class Factory
 
             // Match primitive and object array notation with optional string|int keys.
             case preg_match('/^([\w\\]+)\[(.*)\]$/', $class, $match) == 1:
+                if (isset(static::$definitions[$class])) {
+                    $schema = array(
+                        "\$ref" => "#/definitions/" . str_replace("\\", "/", $class)
+                    );
+                }
+
                 static::$definitions[$class] = null;
 
                 switch ($match[2]) {
@@ -62,7 +68,7 @@ class Factory
                         // Assume int index if not specified.
                     case "int":
                     case "integer":
-                        $keySchemas[] = new Collection\ArrayList($match[1], $annotations);
+                        $schema = new Collection\ArrayList($match[1], $annotations);
                         break;
 
                     case "string":
@@ -70,7 +76,7 @@ class Factory
                         $annotations[] = "@patternProperties {$match[1]} .*";
 
                         // Interpret PHP array map's as JSON objects.
-                        $keySchemas[] = new Collection\ObjectMap(stdClass::class, $annotations);
+                        $schema = new Collection\ObjectMap(stdClass::class, $annotations);
                         break;
 
                     case "string|int":
@@ -78,11 +84,11 @@ class Factory
                         // Add the map type to the catch all pattern property.
                         $annotations[] = "@patternProperties {$match[1]} .*";
 
-                        $schema = new OneOf(array(
+                        $schema = new Condition\OneOf(array(
                             new Collection\ArrayList($match[1], $annotations),
 
                             // Interpret PHP array map's as JSON objects.
-                            $keySchemas[] = new Collection\ObjectMap(stdClass::class, $annotations)
+                            new Collection\ObjectMap(stdClass::class, $annotations)
                         ));
                         break;
 
@@ -99,4 +105,6 @@ class Factory
         /** @var AbstractSchema $schema */
         return $schema;
     }
+
+
 }
