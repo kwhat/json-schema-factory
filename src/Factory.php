@@ -59,42 +59,44 @@ class Factory
                     $schema = array(
                         "\$ref" => "#/definitions/" . str_replace("\\", "/", $class)
                     );
+                } else {
+                    switch ($match[2]) {
+                        case "":
+                            // Assume int index if not specified.
+                        case "int":
+                        case "integer":
+                            $schema = new Collection\ArrayList($match[1], $annotations);
+                            break;
+
+                        case "string":
+                            // Add the map type to the catch all pattern property.
+                            $annotations[] = "@patternProperties {$match[1]} .*";
+
+                            // Interpret PHP array map's as JSON objects.
+                            $schema = new Collection\ObjectMap(stdClass::class, $annotations);
+                            break;
+
+                        case "string|int":
+                        case "int|string":
+                            // Add the map type to the catch all pattern property.
+                            $annotations[] = "@patternProperties {$match[1]} .*";
+
+                            $schema = new Condition\OneOf(array(
+                                new Collection\ArrayList($match[1], $annotations),
+
+                                // Interpret PHP array map's as JSON objects.
+                                new Collection\ObjectMap(stdClass::class, $annotations)
+                            ));
+                            break;
+
+                        default:
+                            throw new Exception\MalformedAnnotation("Arrays may only have keys of type string or int!");
+                    }
                 }
 
                 static::$definitions[$class] = null;
 
-                switch ($match[2]) {
-                    case "":
-                        // Assume int index if not specified.
-                    case "int":
-                    case "integer":
-                        $schema = new Collection\ArrayList($match[1], $annotations);
-                        break;
 
-                    case "string":
-                        // Add the map type to the catch all pattern property.
-                        $annotations[] = "@patternProperties {$match[1]} .*";
-
-                        // Interpret PHP array map's as JSON objects.
-                        $schema = new Collection\ObjectMap(stdClass::class, $annotations);
-                        break;
-
-                    case "string|int":
-                    case "int|string":
-                        // Add the map type to the catch all pattern property.
-                        $annotations[] = "@patternProperties {$match[1]} .*";
-
-                        $schema = new Condition\OneOf(array(
-                            new Collection\ArrayList($match[1], $annotations),
-
-                            // Interpret PHP array map's as JSON objects.
-                            new Collection\ObjectMap(stdClass::class, $annotations)
-                        ));
-                        break;
-
-                    default:
-                        throw new Exception\MalformedAnnotation("Arrays may only have keys of type string or int!");
-                }
                 break;
 
             default:
