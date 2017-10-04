@@ -95,18 +95,19 @@ class Factory
                 }
 
                 static::$definitions[$class] = null;
-
-
                 break;
 
             default:
-                static::$definitions[$class] = null;
-                $schema = new Collection\ObjectMap($class, $annotations);
+                if (isset(static::$definitions[$class])) {
+                    $schema = array(
+                        "\$ref" => "#/definitions/" . str_replace("\\", "/", $class)
+                    );
+                } else {
+                    $schema = new Collection\ObjectMap($class, $annotations);
+                }
         }
 
         /** @var AbstractSchema $schema */
         return $schema;
     }
-
-
 }
