@@ -24,6 +24,7 @@ class Factory
     public static function create($class, array $annotations = [])
     {
         echo "Factory create {$class} [" . implode(", ", $annotations) . "]\n";
+        sleep(1);
 
         switch ($class) {
             case "string":
@@ -54,12 +55,8 @@ class Factory
                 break;
 
             // Match primitive and object array notation with optional string|int keys.
-            case preg_match('/^([\w\\]+)\[(.*)\]$/', $class, $match) == 1:
-                if (isset(static::$definitions[$class])) {
-                    $schema = array(
-                        "\$ref" => "#/definitions/" . str_replace("\\", "/", $class)
-                    );
-                } else {
+            default:
+                if (preg_match('/^([\w\\\\]+)\[(.*)\]$/', $class, $match) == 1) {
                     switch ($match[2]) {
                         case "":
                             // Assume int index if not specified.
@@ -92,16 +89,6 @@ class Factory
                         default:
                             throw new Exception\MalformedAnnotation("Arrays may only have keys of type string or int!");
                     }
-                }
-
-                static::$definitions[$class] = null;
-                break;
-
-            default:
-                if (isset(static::$definitions[$class])) {
-                    $schema = array(
-                        "\$ref" => "#/definitions/" . str_replace("\\", "/", $class)
-                    );
                 } else {
                     $schema = new Collection\ObjectMap($class, $annotations);
                 }

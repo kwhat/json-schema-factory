@@ -189,7 +189,30 @@ class ObjectMap extends AbstractSchema
                         }
 
                         // Get multiple types, skipping string[int|string] notation.
-                        $types = preg_split('/(?<!string|int)\|/', $token[0]);
+                        /*
+                        $bracketSentinal = false;
+                        foreach ((array) $token[0] as $char) {
+                            switch ($char) {
+                                case ']':
+                                case '[':
+                                    $bracketSentinal = ! $bracketSentinal;
+                                    break;
+
+                                case '|':
+                                    if (! $bracketSentinal) {
+
+                                    }
+                            }
+
+
+                            $namespace = $this->getFullNamespace();
+                            if ($namespace !== false) {
+                                $type = $namespace;
+                            }
+                        }
+                        */
+
+                        $types = preg_split('/(?<!\[string|\[int)\|/', $token[0]);
                         foreach ($types as $type) {
                             $namespace = $this->getFullNamespace($type);
                             if ($namespace !== false) {

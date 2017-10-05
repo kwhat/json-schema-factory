@@ -23,30 +23,6 @@ abstract class AbstractSchema implements SchemaInterface
     public $type;
 
     /**
-     * @minItems 1
-     * @var AbstractSchema[] $allOf
-     */
-    public $allOf;
-
-    /**
-     * @minItems 1
-     * @var AbstractSchema[] $anyOf
-     */
-    public $anyOf;
-
-    /**
-     * @minItems 1
-     * @var AbstractSchema[] $oneOf
-     */
-    public $oneOf;
-
-    /**
-     * @minItems 1
-     * @var AbstractSchema $not
-     */
-    public $not;
-
-    /**
      * @generic AbstractSchema
      * @var stdClass $definitions
      */
@@ -96,9 +72,12 @@ abstract class AbstractSchema implements SchemaInterface
      */
     public function jsonSerialize()
     {
+        if (defined(static::TYPE)) {
+            $this->type = static::TYPE;
+        }
+
         // Trick to only return public properties from this scope.
         $schema = call_user_func("get_object_vars", $this);
-        $schema["type"] = static::TYPE;
 
         /*
         $schema = array_filter($schema, function ($property) {
