@@ -7,7 +7,6 @@ use JsonSchema\AbstractSchema;
 use JsonSchema\Doctrine;
 use JsonSchema\Exception;
 use JsonSchema\Factory;
-use JsonSchema\Primitive\BooleanType;
 use JsonSchema\SchemaInterface;
 use ReflectionClass;
 use ReflectionException;
@@ -36,15 +35,13 @@ class ObjectMap extends AbstractSchema
     public $minProperties;
 
     /**
-     * @additionalProperties SchemaInterface
-     * @patternProperties .*
+     * @patternProperties .* SchemaInterface
      * @var stdClass $patternProperties
      */
     public $patternProperties;
 
     /**
-     * @additionalProperties SchemaInterface
-     * @patternProperties [\w]+
+     * @patternProperties [\w]+ SchemaInterface
      * @var stdClass $properties
      */
     public $properties;
@@ -106,16 +103,6 @@ class ObjectMap extends AbstractSchema
             /** @var string $docComment */
             $docComment = $property->getDocComment();
 
-            // Check for a title.
-            if (preg_match('/^[\s*]+[^@]/', $docComment, $match)) {
-                $this->title = $match[0];
-            }
-
-            // Check for a description at the end of the $docComment.
-            if (preg_match_all('/[^@].*$/s', $docComment, $match)) {
-                $this->description = $match[0];
-            }
-
             // Match all annotations in the docComment.
             if (preg_match_all('/@[\w]+.*$/m', $docComment, $match)) {
                 // Normalize @var annotations to @var <type> $var <comment> format.
@@ -124,7 +111,36 @@ class ObjectMap extends AbstractSchema
                 // Append any implied properties to @var annotations.
                 $match = preg_replace('/(@var)[\s]+([\w\[\]\\|]+)(\s+[^$]{1}.*|$)/', '$1 $2 \$' . $property->getName() . '${3}', $match);
 
+                foreach ($match as $annotation) {
+                    $token = preg_split('/[\s]+/', $annotation, 4);
+
+                    if ($token !== false) {
+                        $keyword = array_shift($token);
+                        $required = false;
+
+                        switch ($keyword) {
+                            case "@required":
+                                $required = true;
+                                break;
+
+                            case "@properties":
+                                // Alias for @var
+                            case "@var":
+                                break;
+                        }
+                }
+
                 $this->parseAnnotations($match);
+            }
+
+            // Check for a title.
+            if (preg_match('/^[\s*]+[^@]/', $docComment, $match)) {
+                $this->title = $match[0];
+            }
+
+            // Check for a description at the end of the $docComment.
+            if (preg_match_all('/[^@].*$/s', $docComment, $match)) {
+                $this->description = $match[0];
             }
         }
     }
@@ -174,7 +190,7 @@ class ObjectMap extends AbstractSchema
                         //     "^S_": { "type": "string" },
                         //     "^I_": { "type": "integer" }
                         //  }
-                        $this->patternProperties = Factory::create(stdClass::class, $annotations);
+                        $this->patternProperties[$token[0]] = Factory::create($this->getFullNamespace($token[1]), $annotations);
                         break;
 
                     case "@required":

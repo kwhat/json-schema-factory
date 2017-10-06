@@ -52,14 +52,13 @@ class Schema extends AbstractSchema
     public $produces;
 
     /**
-     * @pattern ^\/[\w/\-%.]+[^\/]$
-     * @generic v2_0\Path\Item
+     * @pattern ^\/[\w/\-%.]+[^\/]$ v2_0\Path\Item
      * @var stdClass $paths
      */
     public $paths;
 
     /**
-     * @generic Collection\ObjectMap
+     * @pattern ^\/[\w/\-%.]+[^\/]$ v2_0\Path\Item Collection\ObjectMap
      * @var stdClass $paths
      */
     public $definitions;

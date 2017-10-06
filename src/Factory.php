@@ -74,7 +74,9 @@ class Factory
                             break;
 
                         case "string|int":
+                        case "string|integer":
                         case "int|string":
+                        case "integer|string":
                             // Add the map type to the catch all pattern property.
                             $annotations[] = "@patternProperties {$match[1]} .*";
 
