@@ -73,6 +73,9 @@ class Factory
                             $schema = new Collection\ObjectMap(stdClass::class, $annotations);
                             break;
 
+                        // FIXME Convert all this garbage into another recursive call!
+                        // FIXME This will handle tuple validation
+                        // @link https://spacetelescope.github.io/understanding-json-schema/reference/array.html#tuple-validation
                         case "string|int":
                         case "string|integer":
                         case "int|string":

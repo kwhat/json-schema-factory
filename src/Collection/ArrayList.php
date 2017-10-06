@@ -11,7 +11,12 @@ class ArrayList extends AbstractSchema
     const TYPE = "array";
 
     /**
-     * @enum csv ssv tsv pipes
+     * @var boolean $additionalItems
+     */
+    public $additionalItems;
+
+    /**
+     * @enum csv|ssv|tsv|pipes
      * @var string $collectionFormat
      */
     public $collectionFormat;
@@ -62,6 +67,7 @@ class ArrayList extends AbstractSchema
      */
     protected function parseAnnotations(array $annotations)
     {
+        // We must call the parent parser to handle upstream annotations.
         parent::parseAnnotations($annotations);
 
         foreach ($annotations as $annotation) {
@@ -71,6 +77,16 @@ class ArrayList extends AbstractSchema
                 $keyword = array_shift($parts);
 
                 switch ($keyword) {
+                    case "@additionalItems":
+                        if (! isset($parts[0]) || $parts[0] == "true" || $parts[0] == true) {
+                            $this->additionalItems = true;
+                        }
+                        break;
+
+                    case "@collectionFormat":
+                        // TODO implement
+                        break;
+
                     case "@maxItems":
                         if (! isset($parts[0])) {
                             throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
@@ -88,7 +104,9 @@ class ArrayList extends AbstractSchema
                         break;
 
                     case "@uniqueItems":
-                        $this->uniqueItems = true;
+                        if (! isset($parts[0]) || $parts[0] == "true" || $parts[0] == true) {
+                            $this->uniqueItems = true;
+                        }
                         break;
                 }
             }

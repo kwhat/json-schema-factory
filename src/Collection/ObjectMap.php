@@ -73,6 +73,11 @@ class ObjectMap extends AbstractSchema
         $this->properties = array();
         $this->required = array();
 
+        if (interface_exists($class)) {
+            // Assume that interfaces have other annotations set.
+            $class = stdClass::class;
+        }
+
         try {
             $reflectionClass = new ReflectionClass($class);
         } catch (ReflectionException $e) {
@@ -93,6 +98,8 @@ class ObjectMap extends AbstractSchema
     }
 
     /**
+     * Parse the properties of this class.
+     *
      * @param ReflectionProperty[] $properties
      *
      * @throws Exception\MalformedAnnotation
@@ -109,63 +116,81 @@ class ObjectMap extends AbstractSchema
                 $match = preg_replace('/(@var)[\s]+(\$[\w]+)[\s]+([\w\[\]\\|]+)/', '$1 $3 $2', $match[0]);
 
                 // Append any implied properties to @var annotations.
-                $match = preg_replace('/(@var)[\s]+([\w\[\]\\|]+)(\s+[^$]{1}.*|$)/', '$1 $2 \$' . $property->getName() . '${3}', $match);
+                // TODO This is probably not needed
+                $match = preg_replace('/(@var)[\s]+([\w\[\]\\|]+)(\s+[^$]{1}.*|$)/',
+                    '$1 $2 \$' . $property->getName() . '${3}', $match);
 
+                // Parse each matched annotation for items that apply to the parent object.
                 foreach ($match as $annotation) {
                     $token = preg_split('/[\s]+/', $annotation, 4);
 
                     if ($token !== false) {
                         $keyword = array_shift($token);
-                        $required = false;
 
                         switch ($keyword) {
                             case "@required":
-                                $required = true;
+                                $this->required[] = $property->getName();
                                 break;
 
                             case "@properties":
                                 // Alias for @var
                             case "@var":
+                                if (! isset($token[0])) {
+                                    throw new Exception\MalformedAnnotation("Malformed annotation {$this->class}::{$annotation}!");
+                                }
+
+                                // Try resolving a full namespace.
+                                $namespace = $this->getFullNamespace($token[0]);
+                                if ($namespace !== false) {
+                                    $token[0] = $namespace;
+                                }
+
+                                $type = Factory::create($token[0], $match);
+
+                                // Check for a title.
+                                if (preg_match('/^[\s*]+[^@]/', $docComment, $match)) {
+                                    $type->title = $match[0];
+                                }
+
+                                // Check for a description at the end of the $docComment.
+                                if (preg_match_all('/[^@].*$/s', $docComment, $match)) {
+                                    $type->description = $match[0];
+                                }
+
+                                $this->properties[$property->getName()] = $type;
                                 break;
                         }
+                    }
                 }
-
-                $this->parseAnnotations($match);
-            }
-
-            // Check for a title.
-            if (preg_match('/^[\s*]+[^@]/', $docComment, $match)) {
-                $this->title = $match[0];
-            }
-
-            // Check for a description at the end of the $docComment.
-            if (preg_match_all('/[^@].*$/s', $docComment, $match)) {
-                $this->description = $match[0];
             }
         }
     }
 
     /**
+     * Parse the annotations for this class.
+     *
      * @param string[] $annotations
      *
      * @throws Exception\MalformedAnnotation
      */
     protected function parseAnnotations(array $annotations)
     {
+        // We must call the parent parser to handle upstream annotations.
+        parent::parseAnnotations($annotations);
+
         foreach ($annotations as $annotation) {
             $token = preg_split('/[\s]+/', $annotation, 4);
 
             if ($token !== false) {
                 $keyword = array_shift($token);
-                $required = false;
 
                 switch ($keyword) {
                     case "@additionalProperties":
-                        if (! isset($token[0])) {
-                            throw new Exception\MalformedAnnotation("Malformed annotation {$this->class}::{$annotation}!");
+                        if (isset($token[0])) {
+                            $this->additionalProperties[] = $this->getFullNamespace($token[0]);
+                        } else {
+                            $this->additionalProperties = true;
                         }
-
-                        $this->additionalProperties = $this->getFullNamespace($token[0]);
                         break;
 
                     case "@maxProperties":
@@ -173,7 +198,7 @@ class ObjectMap extends AbstractSchema
                             throw new Exception\MalformedAnnotation("Malformed annotation {$this->class}::{$annotation}!");
                         }
 
-                        $this->minItems = (int) $token[0];
+                        $this->maxProperties = (int) $token[0];
                         break;
 
                     case "@minProperties":
@@ -181,137 +206,19 @@ class ObjectMap extends AbstractSchema
                             throw new Exception\MalformedAnnotation("Malformed annotation {$this->class}::{$annotation}!");
                         }
 
-                        $this->minItems = (int) $token[0];
+                        $this->minProperties = (int) $token[0];
                         break;
 
                     case "@patternProperties":
-                        // FIXME This should take something in the following format:
-                        // "patternProperties": {
-                        //     "^S_": { "type": "string" },
-                        //     "^I_": { "type": "integer" }
-                        //  }
-                        $this->patternProperties[$token[0]] = Factory::create($this->getFullNamespace($token[1]), $annotations);
-                        break;
-
-                    case "@required":
-                        $required = true;
-                        break;
-
-                    case "@properties":
-                        // Alias for @var
-                    case "@var":
                         if (! isset($token[0]) || ! isset($token[1])) {
                             throw new Exception\MalformedAnnotation("Malformed annotation {$this->class}::{$annotation}!");
                         }
 
-                        // Get multiple types, skipping string[int|string] notation.
-                        /*
-                        $bracketSentinal = false;
-                        foreach ((array) $token[0] as $char) {
-                            switch ($char) {
-                                case ']':
-                                case '[':
-                                    $bracketSentinal = ! $bracketSentinal;
-                                    break;
-
-                                case '|':
-                                    if (! $bracketSentinal) {
-
-                                    }
-                            }
-
-
-                            $namespace = $this->getFullNamespace();
-                            if ($namespace !== false) {
-                                $type = $namespace;
-                            }
-                        }
-                        */
-
-                        $types = preg_split('/(?<!\[string|\[int)\|/', $token[0]);
-                        foreach ($types as $type) {
-                            $namespace = $this->getFullNamespace($type);
-                            if ($namespace !== false) {
-                                $type = $namespace;
-                            }
-
-                            $schemas[] = Factory::create($type, $annotations);
-                        }
-
-                        $count = count($schemas);
-                        if ($count == 1) {
-                            $type = $schemas[0];
-                        } else if ($count > 1) {
-                            /* TODO oneOf attribute is still confusing at this stage....
-                            $type = Factory::create(stdClass::class, array(
-                                "@oneOf " . implode("|", $schemas)
-                            ));
-                            */
-                            $type = array("oneOf" => $schemas);
-                        } else {
-                            throw new Exception\MalformedAnnotation("Malformed annotation {$this->class}::{$annotation}!");
-                        }
-
-                        $this->properties[substr($token[1], 1)] = $type;
+                        $this->patternProperties[$token[0]] = Factory::create($this->getFullNamespace($token[1]), $annotations);
                         break;
                 }
             }
         }
-    }
-
-    /**
-     * @param string $type
-     *
-     * @return string|false $fullNamespace
-     */
-    protected function getFullNamespace($type)
-    {
-        $fullNamespace = false;
-
-        $isArray = false;
-        if (substr($type, -2) == "[]") {
-            $isArray = true;
-            $type = substr($type, 0, -2);
-        }
-
-        if (class_exists($type)) {
-            $fullNamespace = $type;
-        } else if (class_exists($this->namespace . "\\" . $type)) {
-            $fullNamespace = $this->namespace . "\\" . $type;
-        } else {
-            foreach($this->imports as $use) {
-                // Check for use alias.
-                if (preg_match('/(.+)\s+as\s+' . preg_quote($type, "\\") . '$/', $use, $match)) {
-                    if (class_exists($match[1])) {
-                        $fullNamespace = $match[1];
-                        break;
-                    }
-                } else if (preg_match('/(.*)' . preg_quote($type, "\\") . '$/', $use, $match)) {
-                    if (class_exists($match[0])) {
-                        $fullNamespace = $match[0];
-                        break;
-                    }
-                } else if (class_exists("{$use}\\{$type}")) {
-                    $fullNamespace = "{$use}\\{$type}";
-                    break;
-                } else {
-                    $separator = strrpos($use , "\\");
-                    if ($separator !== false) {
-                        $class = substr($use, 0, $separator + 1) . $type;
-                        if (class_exists($class)) {
-                            $fullNamespace = $class;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        if ($fullNamespace && $isArray) {
-            $fullNamespace .= "[]";
-        }
-
-        return $fullNamespace;
     }
 
     /**
