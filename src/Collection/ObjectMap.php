@@ -3,7 +3,7 @@
 namespace JsonSchema\Collection;
 
 use Doctrine\Common\Reflection;
-use JsonSchema\AbstractSchema;
+use JsonSchema\AbstractCollection;
 use JsonSchema\Doctrine;
 use JsonSchema\Exception;
 use JsonSchema\Factory;
@@ -13,7 +13,7 @@ use ReflectionException;
 use ReflectionProperty;
 use stdClass;
 
-class ObjectMap extends AbstractSchema
+class ObjectMap extends AbstractCollection
 {
     const TYPE = "object";
 
@@ -144,6 +144,7 @@ class ObjectMap extends AbstractSchema
                                 if ($namespace !== false) {
                                     $token[0] = $namespace;
                                 }
+                                var_dump($namespace, $token[0]);
 
                                 $type = Factory::create($token[0], $match);
 
