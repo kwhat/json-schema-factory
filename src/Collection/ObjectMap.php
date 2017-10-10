@@ -150,6 +150,7 @@ class ObjectMap extends AbstractCollection
                                 if ($namespace !== false) {
                                     $token[0] = $namespace;
                                 }
+                                var_dump($namespace, $token[0]);
 
                                 $type = Factory::create($token[0], $match);
 

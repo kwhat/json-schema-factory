@@ -9,7 +9,7 @@ abstract class AbstractSchema implements SchemaInterface
     /**
      * @uniqueItems
      * @minItems 1
-     * @var SchemaInterface[] $enum
+     * @var string[]|int[] $enum
      */
     public $enum;
 
