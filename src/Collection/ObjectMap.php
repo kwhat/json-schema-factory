@@ -3,7 +3,7 @@
 namespace JsonSchema\Collection;
 
 use Doctrine\Common\Reflection;
-use JsonSchema\AbstractSchema;
+use JsonSchema\AbstractCollection;
 use JsonSchema\Doctrine;
 use JsonSchema\Exception;
 use JsonSchema\Factory;
@@ -13,7 +13,7 @@ use ReflectionException;
 use ReflectionProperty;
 use stdClass;
 
-class ObjectMap extends AbstractSchema
+class ObjectMap extends AbstractCollection
 {
     const TYPE = "object";
 
@@ -138,6 +138,12 @@ class ObjectMap extends AbstractSchema
                                 if (! isset($token[0])) {
                                     throw new Exception\MalformedAnnotation("Malformed annotation {$this->class}::{$annotation}!");
                                 }
+
+                                $types = explode("|", $token[0]);
+                                foreach ($types as $type) {
+                                    if ()
+                                }
+
 
                                 // Try resolving a full namespace.
                                 $namespace = $this->getFullNamespace($token[0]);
