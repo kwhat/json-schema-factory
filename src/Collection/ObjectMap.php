@@ -112,6 +112,7 @@ class ObjectMap extends AbstractCollection
 
             // Match all annotations in the docComment.
             if (preg_match_all('/@[\w]+.*$/m', $docComment, $match)) {
+
                 // Normalize @var annotations to @var <type> $var <comment> format.
                 $match = preg_replace('/(@var)[\s]+(\$[\w]+)[\s]+([\w\[\]\\|]+)/', '$1 $3 $2', $match[0]);
 
@@ -121,50 +122,73 @@ class ObjectMap extends AbstractCollection
                     '$1 $2 \$' . $property->getName() . '${3}', $match);
 
                 // Parse each matched annotation for items that apply to the parent object.
-                foreach ($match as $annotation) {
-                    $token = preg_split('/[\s]+/', $annotation, 4);
+                foreach ($match as &$annotation) {
+                    $args = preg_split('/[\s]+/', $annotation, 4);
 
-                    if ($token !== false) {
-                        $keyword = array_shift($token);
+                    if ($args !== false) {
+                        $keyword = array_shift($args);
 
                         switch ($keyword) {
                             case "@required":
                                 $this->required[] = $property->getName();
                                 break;
 
-                            case "@properties":
-                                // Alias for @var
-                            case "@var":
-                                if (! isset($token[0])) {
+                            case "@patternProperties":
+                                if (! isset($args[0]) || ! isset($args[1])) {
                                     throw new Exception\MalformedAnnotation("Malformed annotation {$this->class}::{$annotation}!");
                                 }
 
-                                $types = explode("|", $token[0]);
-                                foreach ($types as $type) {
-                                    if ()
-                                }
-
-
                                 // Try resolving a full namespace.
-                                $namespace = $this->getFullNamespace($token[0]);
+                                $namespace = $this->getFullNamespace($args[1]);
                                 if ($namespace !== false) {
-                                    $token[0] = $namespace;
+                                    $args[1] = $namespace;
                                 }
-                                var_dump($namespace, $token[0]);
+                                $annotation = implode(" ", $args);
+                                break;
 
-                                $type = Factory::create($token[0], $match);
-
-                                // Check for a title.
-                                if (preg_match('/^[\s*]+[^@]/', $docComment, $match)) {
-                                    $type->title = $match[0];
-                                }
-
-                                // Check for a description at the end of the $docComment.
-                                if (preg_match_all('/[^@].*$/s', $docComment, $match)) {
-                                    $type->description = $match[0];
+                            case "@properties":
+                                // Alias for @var
+                            case "@var":
+                                if (! isset($args[0])) {
+                                    throw new Exception\MalformedAnnotation("Malformed annotation {$this->class}::{$annotation}!");
                                 }
 
-                                $this->properties[$property->getName()] = $type;
+                                $types = array();
+                                $bracketSentinel = false;
+                                for ($i = 0; $i < strlen($args[0]); $i++) {
+                                    if ($args[0][$i] == "[") {
+                                        $bracketSentinel = true;
+                                    } else if ($args[0][$i] == "]") {
+                                        $bracketSentinel = false;
+                                    } else if ($args[0][$i] == "|" && ! $bracketSentinel) {
+                                        $types[] = substr($args[0], 0, $i);
+                                        $args[0] = substr($args[0], $i + 1);
+                                    }
+                                }
+                                $types[] = $args[0];
+
+                                foreach ($types as $type) {
+                                    // Try resolving a full namespace.
+                                    $namespace = $this->getFullNamespace($type);
+                                    if ($namespace !== false) {
+                                        $type = $namespace;
+                                    }
+
+                                    $schema = Factory::create($type, $match);
+
+                                    // Check for a title.
+                                    if (preg_match('/^[\s*]+[^@]/', $docComment, $title)) {
+                                        $schema->title = $title[0];
+                                    }
+
+                                    // Check for a description at the end of the $docComment.
+                                    if (preg_match_all('/[^@].*$/s', $docComment, $title)) {
+                                        $schema->description = $title[0];
+                                    }
+
+                                    // FIXME This should be one of if more than one!
+                                    $this->properties[$property->getName()] = $schema;
+                                }
                                 break;
                         }
                     }
@@ -186,42 +210,42 @@ class ObjectMap extends AbstractCollection
         parent::parseAnnotations($annotations);
 
         foreach ($annotations as $annotation) {
-            $token = preg_split('/[\s]+/', $annotation, 4);
+            $args = preg_split('/[\s]+/', $annotation, 4);
 
-            if ($token !== false) {
-                $keyword = array_shift($token);
+            if ($args !== false) {
+                $keyword = array_shift($args);
 
                 switch ($keyword) {
                     case "@additionalProperties":
-                        if (isset($token[0])) {
-                            $this->additionalProperties[] = $this->getFullNamespace($token[0]);
+                        if (isset($args[0])) {
+                            $this->additionalProperties[] = $this->getFullNamespace($args[0]);
                         } else {
                             $this->additionalProperties = true;
                         }
                         break;
 
                     case "@maxProperties":
-                        if (! isset($token[0])) {
+                        if (! isset($args[0])) {
                             throw new Exception\MalformedAnnotation("Malformed annotation {$this->class}::{$annotation}!");
                         }
 
-                        $this->maxProperties = (int) $token[0];
+                        $this->maxProperties = (int) $args[0];
                         break;
 
                     case "@minProperties":
-                        if (! isset($token[0])) {
+                        if (! isset($args[0])) {
                             throw new Exception\MalformedAnnotation("Malformed annotation {$this->class}::{$annotation}!");
                         }
 
-                        $this->minProperties = (int) $token[0];
+                        $this->minProperties = (int) $args[0];
                         break;
 
                     case "@patternProperties":
-                        if (! isset($token[0]) || ! isset($token[1])) {
+                        if (! isset($args[0]) || ! isset($args[1])) {
                             throw new Exception\MalformedAnnotation("Malformed annotation {$this->class}::{$annotation}!");
                         }
 
-                        $this->patternProperties[$token[0]] = Factory::create($this->getFullNamespace($token[1]), $annotations);
+                        $this->patternProperties[$args[0]] = Factory::create($this->getFullNamespace($args[1]), $annotations);
                         break;
                 }
             }

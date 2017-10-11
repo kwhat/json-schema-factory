@@ -24,7 +24,7 @@ class Factory
     public static function create($class, array $annotations = [])
     {
         echo "Factory create {$class} [" . implode(", ", $annotations) . "]\n";
-        sleep(1);
+        usleep(500);
 
         switch ($class) {
             case "string":
@@ -48,10 +48,6 @@ class Factory
 
             case "null":
                 $schema = new Primitive\NullType();
-                break;
-
-            case "mixed":
-                $schema = "*";
                 break;
 
             // Match primitive and object array notation with optional string|int keys.

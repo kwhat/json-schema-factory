@@ -72,40 +72,40 @@ class ArrayList extends AbstractCollection
         parent::parseAnnotations($annotations);
 
         foreach ($annotations as $annotation) {
-            $parts = preg_split('/[\s]+/', $annotation, 2);
+            $args = preg_split('/[\s]+/', $annotation, 2);
 
-            if ($parts !== false) {
-                $keyword = array_shift($parts);
+            if ($args !== false) {
+                $keyword = array_shift($args);
 
                 switch ($keyword) {
                     case "@additionalItems":
-                        if (! isset($parts[0]) || $parts[0] == "true" || $parts[0] == true) {
+                        if (! isset($args[0]) || $args[0] == "true" || $args[0] == true) {
                             $this->additionalItems = true;
                         }
                         break;
 
                     case "@collectionFormat":
-                        // TODO implement
+                        // FIXME implement
                         break;
 
                     case "@maxItems":
-                        if (! isset($parts[0])) {
+                        if (! isset($args[0])) {
                             throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
                         }
 
-                        $this->maxItems = (int) $parts[0];
+                        $this->maxItems = (int) $args[0];
                         break;
 
                     case "@minItems":
-                        if (! isset($parts[0])) {
+                        if (! isset($args[0])) {
                             throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
                         }
 
-                        $this->minItems = (int) $parts[0];
+                        $this->minItems = (int) $args[0];
                         break;
 
                     case "@uniqueItems":
-                        if (! isset($parts[0]) || $parts[0] == "true" || $parts[0] == true) {
+                        if (! isset($args[0]) || $args[0] == "true" || $args[0] == true) {
                             $this->uniqueItems = true;
                         }
                         break;

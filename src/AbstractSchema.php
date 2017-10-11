@@ -23,7 +23,7 @@ abstract class AbstractSchema implements SchemaInterface
     public $type;
 
     /**
-     * @patternProperties .* AbstractSchema
+     * @patternProperties .* SchemaInterface
      * @var stdClass $definitions
      */
     public $definitions;
@@ -39,7 +39,7 @@ abstract class AbstractSchema implements SchemaInterface
     public $description;
 
     /**
-     * @var mixed $default
+     * @var SchemaInterface $default
      */
     public $default;
 
