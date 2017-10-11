@@ -2,12 +2,11 @@
 
 namespace JsonSchema\Collection;
 
-use JsonSchema\AbstractCollection;
 use JsonSchema\AbstractSchema;
 use JsonSchema\Exception;
 use JsonSchema\Factory;
 
-class ArrayList extends AbstractCollection
+class ArrayList extends AbstractSchema
 {
     const TYPE = "array";
 

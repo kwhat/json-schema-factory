@@ -41,7 +41,7 @@ class NumberType extends AbstractSchema
     public $multipleOf;
 
     /**
-     * @param array $annotations
+     * @param string[] $annotations
      */
     public function __construct(array $annotations = [])
     {
