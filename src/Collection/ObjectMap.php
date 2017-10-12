@@ -54,13 +54,13 @@ class ObjectMap extends AbstractSchema
 
 
     /** @var string $class */
-    protected $class;
+    //protected $class;
 
     /** @var string $namespace */
-    protected $namespace;
+    //protected $namespace;
 
     /** @var string[] $imports */
-    protected $imports;
+    //protected $imports;
 
     /**
      * @param string $class
@@ -84,28 +84,30 @@ class ObjectMap extends AbstractSchema
             throw new Exception\ClassNotFound($e->getMessage(), $e->getCode(), $e);
         }
 
-        $classFinder = new Doctrine\AutoloadClassFinder();
-        $reflectionParser = new Reflection\StaticReflectionParser($reflectionClass->getName(), $classFinder);
-
-        $this->class = $reflectionClass->getShortName();
-        $this->namespace = $reflectionClass->getNamespaceName();
-        $this->imports = $reflectionParser->getUseStatements();
-
-        /** @var ReflectionProperty $property */
-        $properties = $reflectionClass->getProperties(ReflectionProperty::IS_PUBLIC);
-        $this->parseProperties($properties);
+        $this->parseProperties($reflectionClass);
         $this->parseAnnotations($annotations);
     }
 
     /**
      * Parse the properties of this class.
      *
-     * @param ReflectionProperty[] $properties
+     * @param ReflectionClass $reflectionClass
      *
      * @throws Exception\MalformedAnnotation
      */
-    protected function parseProperties(array $properties)
+    protected function parseProperties(ReflectionClass $reflectionClass)
     {
+        $classFinder = new Doctrine\AutoloadClassFinder();
+        $reflectionParser = new Reflection\StaticReflectionParser($reflectionClass->getName(), $classFinder);
+
+        $class = $reflectionClass->getShortName();
+        $namespace = $reflectionClass->getNamespaceName();
+        $imports = $reflectionParser->getUseStatements();
+        $reflectionClass->getParentClass();
+
+        /** @var ReflectionProperty $property */
+        $properties = $reflectionClass->getProperties(ReflectionProperty::IS_PUBLIC);
+
         foreach ($properties as $property) {
             /** @var string $docComment */
             $docComment = $property->getDocComment();
@@ -135,7 +137,7 @@ class ObjectMap extends AbstractSchema
 
                             case "@patternProperties":
                                 if (! isset($args[0]) || ! isset($args[1])) {
-                                    throw new Exception\MalformedAnnotation("Malformed annotation {$this->class}::{$annotation}!");
+                                    throw new Exception\MalformedAnnotation("Malformed annotation {$class}::{$annotation}!");
                                 }
 
                                 // Try resolving a full namespace.
@@ -150,7 +152,7 @@ class ObjectMap extends AbstractSchema
                                 // Alias for @var
                             case "@var":
                                 if (! isset($args[0])) {
-                                    throw new Exception\MalformedAnnotation("Malformed annotation {$this->class}::{$annotation}!");
+                                    throw new Exception\MalformedAnnotation("Malformed annotation {$class}::{$annotation}!");
                                 }
 
                                 $types = array();
@@ -174,7 +176,7 @@ class ObjectMap extends AbstractSchema
                                         $type = $namespace;
                                     }
 
-                                    var_dump($this->namespace, $this->class, $type);
+                                    var_dump($namespace, $class, $type);
                                     echo "\n";
                                     $schema = Factory::create($type, $match);
 
