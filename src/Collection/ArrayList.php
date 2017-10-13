@@ -8,8 +8,6 @@ use JsonSchema\Factory;
 
 class ArrayList extends AbstractSchema
 {
-    const TYPE = "array";
-
     /**
      * @var boolean $additionalItems
      */
@@ -55,6 +53,7 @@ class ArrayList extends AbstractSchema
         $this->items = array(
             Factory::create($class, $annotations)
         );
+        $this->type = "array";
         $this->uniqueItems = false;
 
         $this->parseAnnotations($annotations);

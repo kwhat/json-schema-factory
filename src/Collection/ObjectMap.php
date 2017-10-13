@@ -15,8 +15,6 @@ use stdClass;
 
 class ObjectMap extends AbstractSchema
 {
-    const TYPE = "object";
-
     /**
      * @var boolean|SchemaInterface $additionalProperties
      */
@@ -65,14 +63,27 @@ class ObjectMap extends AbstractSchema
     /**
      * @param string $class
      * @param string[] $annotations
-     *
-     * @throws Exception\ClassNotFound
      */
     public function __construct($class, array $annotations = [])
     {
         $this->properties = array();
         $this->required = array();
+        $this->type = "object";
 
+        $this->parseProperties($class);
+        $this->parseAnnotations($annotations);
+    }
+
+    /**
+     * Parse the properties of this class.
+     *
+     * @param string $class
+     *
+     * @throws Exception\ClassNotFound
+     * @throws Exception\MalformedAnnotation
+     */
+    protected function parseProperties($class)
+    {
         if (interface_exists($class)) {
             // Assume that interfaces have other annotations set.
             $class = stdClass::class;
@@ -83,27 +94,6 @@ class ObjectMap extends AbstractSchema
         } catch (ReflectionException $e) {
             throw new Exception\ClassNotFound($e->getMessage(), $e->getCode(), $e);
         }
-
-        $this->parseProperties($reflectionClass);
-        $this->parseAnnotations($annotations);
-    }
-
-    /**
-     * Parse the properties of this class.
-     *
-     * @param ReflectionClass $reflectionClass
-     *
-     * @throws Exception\MalformedAnnotation
-     */
-    protected function parseProperties(ReflectionClass $reflectionClass)
-    {
-        $classFinder = new Doctrine\AutoloadClassFinder();
-        $reflectionParser = new Reflection\StaticReflectionParser($reflectionClass->getName(), $classFinder);
-
-        $class = $reflectionClass->getShortName();
-        $namespace = $reflectionClass->getNamespaceName();
-        $imports = $reflectionParser->getUseStatements();
-        $reflectionClass->getParentClass();
 
         /** @var ReflectionProperty $property */
         $properties = $reflectionClass->getProperties(ReflectionProperty::IS_PUBLIC);
@@ -119,7 +109,6 @@ class ObjectMap extends AbstractSchema
                 $match = preg_replace('/(@var)[\s]+(\$[\w]+)[\s]+([\w\[\]\\|]+)/', '$1 $3 $2', $match[0]);
 
                 // Append any implied properties to @var annotations.
-                // TODO This is probably not needed
                 $match = preg_replace('/(@var)[\s]+([\w\[\]\\|]+)(\s+[^$]{1}.*|$)/',
                     '$1 $2 \$' . $property->getName() . '${3}', $match);
 
@@ -132,6 +121,7 @@ class ObjectMap extends AbstractSchema
 
                         switch ($keyword) {
                             case "@required":
+                                // TODO Maybe take an optional second param for property name.
                                 $this->required[] = $property->getName();
                                 break;
 
@@ -171,14 +161,13 @@ class ObjectMap extends AbstractSchema
 
                                 foreach ($types as $type) {
                                     // Try resolving a full namespace.
-                                    $namespace = $this->getFullNamespace($type);
+                                    $namespace = $this->getFullNamespace($type, $reflectionClass);
                                     if ($namespace !== false) {
                                         $type = $namespace;
                                     }
 
-                                    var_dump($namespace, $class, $type);
-                                    echo "\n";
                                     $schema = Factory::create($type, $match);
+                                    var_dump($schema);
 
                                     // Check for a title.
                                     if (preg_match('/^[\s*]+[^@]/', $docComment, $title)) {
@@ -191,7 +180,7 @@ class ObjectMap extends AbstractSchema
                                     }
 
                                     // FIXME This should be one of if more than one!
-                                    $this->properties[$property->getName()] = $schema;
+                                    $this->properties[substr($args[1], 1)] = $schema;
                                 }
                                 break;
                         }
@@ -258,10 +247,11 @@ class ObjectMap extends AbstractSchema
 
     /**
      * @param string $type
+     * @param ReflectionClass|null $parent
      *
      * @return string|false $fullNamespace
      */
-    protected function getFullNamespace($type)
+    protected function getFullNamespace($type, ReflectionClass $parent = null)
     {
         $fullNamespace = false;
 
@@ -270,43 +260,47 @@ class ObjectMap extends AbstractSchema
             $isArray = true;
             $type = substr($type, 0, -2);
         }
-
+        
         if (class_exists($type) || interface_exists($type)) {
             // Check for fully qualified name.
             $fullNamespace = $type;
-        } else if (class_exists("{$this->namespace}\\{$type}") || interface_exists("{$this->namespace}\\{$type}")) {
-            // Check for relative namespace.
-            $fullNamespace = "{$this->namespace}\\{$type}";
-        } else {
-            // Check for use statements.
-            foreach($this->imports as $use) {
-                if (preg_match('/(.+)\s+as\s+' . preg_quote($type, "\\") . '$/', $use, $match)) {
-                    // Check for use alias.
-                    if (class_exists($match[1]) || interface_exists($match[1])) {
-                        $fullNamespace = $match[1];
-                        break;
-                    }
-                } else if (preg_match('/(.*)' . preg_quote($type, "\\") . '$/', $use, $match)) {
-                    // Check for use ending with.
-                    if (class_exists($match[0]) || interface_exists($match[0])) {
-                        $fullNamespace = $match[0];
-                        break;
-                    }
-                } else if (class_exists("{$use}\\{$type}") || interface_exists("{$use}\\{$type}")) {
-                    // Check for use relative namespace.
-                    $fullNamespace = "{$use}\\{$type}";
-                    break;
-                } else {
-                    // Check for use extension namespace.
-                    $separator = strrpos($use , "\\");
-                    if ($separator !== false) {
-                        $class = substr($use, 0, $separator + 1) . $type;
-                        if (class_exists($class) || interface_exists($class)) {
-                            $fullNamespace = $class;
-                            break;
+        } else if ($parent != null) {
+            $classFinder = new Doctrine\AutoloadClassFinder();
+            $reflectionParser = new Reflection\StaticReflectionParser($parent->getName(), $classFinder);
+            $namespace = $parent->getNamespaceName();
+
+            $fullNamespace = $this->getFullNamespace("{$namespace}\\{$type}");
+            if (! $fullNamespace) {
+                // Check for use statements.
+                $imports = array_values($reflectionParser->getUseStatements());
+                for ($i = 0; !$fullNamespace && $i < count($imports); $i++) {
+                    /** @var string $use */
+                    $use = $imports[$i];
+
+                    if (preg_match('/(.+)\s+as\s+' . preg_quote($type, "\\") . '$/', $use, $match)) {
+                        // Check for use alias.
+                        $fullNamespace = $this->getFullNamespace($match[1]);
+                    } else if (preg_match('/(.*)' . preg_quote($type, "\\") . '$/', $use, $match)) {
+                        // Check for use ending with.
+                        $fullNamespace = $this->getFullNamespace($match[0]);
+                    } else {
+                        // Check for use relative namespace.
+                        $fullNamespace = $this->getFullNamespace("{$use}\\{$type}");
+
+                        if (!$fullNamespace) {
+                            // Check for use extension namespace.
+                            $separator = strrpos($use, "\\");
+                            if ($separator !== false) {
+                                $class = substr($use, 0, $separator + 1) . $type;
+                                $fullNamespace = $this->getFullNamespace($class);
+                            }
                         }
                     }
                 }
+            }
+
+            if ($fullNamespace === false && ($parent = $parent->getParentClass())) {
+                $fullNamespace = $this->getFullNamespace($type, $parent);
             }
         }
 
@@ -324,6 +318,7 @@ class ObjectMap extends AbstractSchema
     {
         $schema = parent::jsonSerialize();
 
+        /*
         if (is_array($this->properties)) {
             $schema["properties"] = $this->properties;
         } else if (is_string($this->properties)) {
@@ -333,6 +328,19 @@ class ObjectMap extends AbstractSchema
         if (! empty($this->required)) {
             $schema["required"] = $this->required;
         }
+
+        if (defined(static::TYPE)) {
+            $this->type = static::TYPE;
+        }
+
+        $schema = array_filter($schema, function ($property) {
+            if (in_array("", $this->re)) {
+
+            }
+
+            return $property !== null;
+        });
+        */
 
         return $schema;
     }

@@ -6,15 +6,13 @@ use JsonSchema\SchemaInterface;
 
 class OneOf implements SchemaInterface
 {
-    const TYPE = "oneOf";
-
     /**
      * @return array
      */
     public function jsonSerialize()
     {
         $schema = array(
-            static::TYPE => null
+            "type" => "oneOf"
         );
 
         return $schema;

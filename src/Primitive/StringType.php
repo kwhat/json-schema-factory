@@ -7,10 +7,8 @@ use JsonSchema\Exception;
 
 class StringType extends AbstractSchema
 {
-    const TYPE = "string";
-
     /**
-     * @enum binary byte date date-time password
+     * @enum binary|byte|date|date-time|password
      * @var string $format
      */
     public $format;
@@ -29,9 +27,13 @@ class StringType extends AbstractSchema
      * @var string $pattern 
      */
     public $pattern;
-    
+
+    /**
+     * @param string[] $annotations
+     */
     public function __construct(array $annotations = [])
     {
+        $this->type = "string";
         $this->parseAnnotations($annotations);
     }
 

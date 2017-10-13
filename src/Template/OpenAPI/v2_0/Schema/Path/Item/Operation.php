@@ -1,6 +1,6 @@
 <?php
 
-namespace Bildr\API\Json\v2_0\OpenAPI\Path\Item;
+namespace JsonSchema\Template\v2_0\OpenAPI\Path\Item;
 
 use Bildr\API;
 use Bildr\API\Json\v2_0\OpenAPI;

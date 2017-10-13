@@ -1,6 +1,6 @@
 <?php
 
-namespace Bildr\API\Json\v2_0\OpenAPI\Path;
+namespace JsonSchema\Template\v2_0\OpenAPI\Path;
 
 use JsonSchema\AbstractSchema;
 

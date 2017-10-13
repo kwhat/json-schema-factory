@@ -1,6 +1,6 @@
 <?php
 
-namespace JsonSchema\OpenAPI\v2_0;
+namespace JsonSchema\Template\OpenAPI\v2_0;
 
 use JsonSchema\AbstractSchema;
 use stdClass;
@@ -58,7 +58,7 @@ class Schema extends AbstractSchema
     public $paths;
 
     /**
-     * @pattern ^\/[\w/\-%.]+[^\/]$ v2_0\Path\Item Collection\ObjectMap
+     * @pattern ^\/[\w/\-%.]+[^\/]$ v2_0\Schema\Path\Item
      * @var stdClass $paths
      */
     public $definitions;
@@ -74,8 +74,7 @@ class Schema extends AbstractSchema
     public $security;
 
     /**
-     * @generic Security\ApiKey | Security\Basic | Security\OAuth2
-     * @var stdClass $security
+     * @var Security\ApiKey|Security\Basic|Security\OAuth2 $security
      */
     public $securityDefinitions;
 

@@ -7,8 +7,6 @@ use JsonSchema\Exception;
 
 class NumberType extends AbstractSchema
 {
-    const TYPE = "number";
-
     /**
      * @var bool $exclusiveMaximum
      */
@@ -47,6 +45,7 @@ class NumberType extends AbstractSchema
     {
         $this->exclusiveMaximum = false;
         $this->exclusiveMinimum = false;
+        $this->type = "number";
         
         $this->parseAnnotations($annotations);
     }

@@ -24,7 +24,6 @@ class Factory
     public static function create($class, array $annotations = [])
     {
         echo "Factory create {$class} [" . implode(", ", $annotations) . "]\n";
-        usleep(500);
 
         switch ($class) {
             case "string":

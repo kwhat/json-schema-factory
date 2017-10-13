@@ -6,15 +6,13 @@ use JsonSchema\SchemaInterface;
 
 class AnyOf implements SchemaInterface
 {
-    const TYPE = "boolean";
-
     /**
      * @return array
      */
     public function jsonSerialize()
     {
         $schema = array(
-            "type" => static::TYPE
+            "type" => "anyOf"
         );
 
         return $schema;

@@ -6,15 +6,13 @@ use JsonSchema\SchemaInterface;
 
 class NullType implements SchemaInterface
 {
-    const TYPE = "null";
-
     /**
      * @return array
      */
     public function jsonSerialize()
     {
         $schema = array(
-            "type" => static::TYPE
+            "type" => "null"
         );
 
         return $schema;

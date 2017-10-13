@@ -14,6 +14,14 @@ class Composer
 {
     public static function generateSchema(Script\Event $event)
     {
+        mkdir("schema/JsonSchema/Primitive/", 0755, true);
+        /** @var AbstractSchema $class */
+        $schema = Primitive\StringType::schemaSerialize();
+        file_put_contents("schema/JsonSchema/Primitive/StringType.json",
+            json_encode($schema, JSON_PRETTY_PRINT));
+        exit(0);
+
+
         /** @var \Composer\Composer $composer */
         $composer = $event->getComposer();
 
@@ -86,7 +94,7 @@ class Composer
                                     $pathInfo = pathinfo($class);
                                     $class = "{$namespace}" . str_replace(DIRECTORY_SEPARATOR, "\\", $class);
 
-                                    if (is_subclass_of($class, AbstractSchema::class, true)) {
+                                    if (is_subclass_of($class, SchemaInterface::class, true)) {
                                         $args = $event->getArguments();
                                         $prefix = "schema" . DIRECTORY_SEPARATOR;
 

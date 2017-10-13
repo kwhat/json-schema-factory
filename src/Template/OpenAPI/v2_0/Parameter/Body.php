@@ -1,6 +1,6 @@
 <?php
 
-namespace JsonSchema\v2_0\OpenAPI\Parameter;
+namespace JsonSchema\Template\v2_0\OpenAPI\Parameter;
 
 use JsonSchema\AbstractSchema;
 use JsonSchema\SchemaInterface;
