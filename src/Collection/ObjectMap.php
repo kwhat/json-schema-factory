@@ -109,7 +109,7 @@ class ObjectMap extends AbstractSchema
                 $match = preg_replace('/(@var)[\s]+(\$[\w]+)[\s]+([\w\[\]\\|]+)/', '$1 $3 $2', $match[0]);
 
                 // Append any implied properties to @var annotations.
-                $match = preg_replace('/(@var)[\s]+([\w\[\]\\|]+)(\s+[^$]{1}.*|$)/',
+                $match = preg_replace('/(@var)[\s]+([\w\[\]\\\|]+)(\s+[^$]{1}.*|$)/',
                     '$1 $2 \$' . $property->getName() . '${3}', $match);
 
                 // Parse each matched annotation for items that apply to the parent object.
@@ -155,6 +155,7 @@ class ObjectMap extends AbstractSchema
                                     } else if ($args[0][$i] == "|" && ! $bracketSentinel) {
                                         $types[] = substr($args[0], 0, $i);
                                         $args[0] = substr($args[0], $i + 1);
+                                        $i = 0;
                                     }
                                 }
                                 $types[] = $args[0];
@@ -167,16 +168,21 @@ class ObjectMap extends AbstractSchema
                                     }
 
                                     $schema = Factory::create($type, $match);
-                                    var_dump($schema);
 
                                     // Check for a title.
-                                    if (preg_match('/^[\s*]+[^@]/', $docComment, $title)) {
-                                        $schema->title = $title[0];
+                                    if (preg_match('/^\/\*\*([^@]+)/', $docComment, $title)) {
+                                        $title[1] = trim(preg_replace('/[\s*]+/', " ", $title[1]));
+                                        if (! empty($title[1])) {
+                                            $schema->title = $title[1];
+                                        }
                                     }
 
                                     // Check for a description at the end of the $docComment.
-                                    if (preg_match_all('/[^@].*$/s', $docComment, $title)) {
-                                        $schema->description = $title[0];
+                                    if (preg_match('/[\r]?[\n]{1}([^@]+)\*\/$/', $docComment, $description)) {
+                                        $description[1] = trim(preg_replace('/[\s*]+/', " ", $description[1]));
+                                        if (! empty($description[1])) {
+                                            $schema->description = $description[1];
+                                        }
                                     }
 
                                     // FIXME This should be one of if more than one!

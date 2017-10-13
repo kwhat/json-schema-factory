@@ -1,8 +1,9 @@
 <?php
 
-namespace JsonSchema\Template\v2_0\OpenAPI\Path;
+namespace JsonSchema\Template\OpenAPI\v2_0\Schema\Path;
 
 use JsonSchema\AbstractSchema;
+use JsonSchema\Template\OpenAPI;
 
 class Item extends AbstractSchema
 {
@@ -48,7 +49,7 @@ class Item extends AbstractSchema
 
     /**
      * @uniqueItems
-     * @var API\Json\v2_0\OpenAPI\AbstractParameter[]
+     * @var OpenAPI\v2_0\Parameter\Body[]
      */
     public $parameters;
 }

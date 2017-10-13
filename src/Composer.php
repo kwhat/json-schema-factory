@@ -14,14 +14,6 @@ class Composer
 {
     public static function generateSchema(Script\Event $event)
     {
-        mkdir("schema/JsonSchema/Primitive/", 0755, true);
-        /** @var AbstractSchema $class */
-        $schema = Primitive\StringType::schemaSerialize();
-        file_put_contents("schema/JsonSchema/Primitive/StringType.json",
-            json_encode($schema, JSON_PRETTY_PRINT));
-        exit(0);
-
-
         /** @var \Composer\Composer $composer */
         $composer = $event->getComposer();
 

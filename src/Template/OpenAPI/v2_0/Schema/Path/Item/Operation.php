@@ -1,9 +1,9 @@
 <?php
 
-namespace JsonSchema\Template\v2_0\OpenAPI\Path\Item;
+namespace JsonSchema\Template\OpenAPI\v2_0\Schema\Path\Item;
 
-use Bildr\API;
-use Bildr\API\Json\v2_0\OpenAPI;
+use JsonSchema\Template\OpenAPI\v2_0\Parameter;
+use JsonSchema\Template\OpenAPI\v2_0\Schema;
 use JsonSchema\AbstractSchema;
 use stdClass;
 
@@ -26,7 +26,7 @@ class Operation extends AbstractSchema
     public $description;
 
     /**
-     * @var OpenAPI\ExternalDocumentation $externalDocs
+     * @var Schema\ExternalDocumentation $externalDocs
      */
     public $externalDocs;
 
@@ -46,7 +46,7 @@ class Operation extends AbstractSchema
     public $produces;
 
     /**
-     * @generic OpenAPI\AbstractParameter
+     * @patternProperties [\w]+ Parameter\Body
      * @var stdClass $parameters
      */
     public $parameters;
