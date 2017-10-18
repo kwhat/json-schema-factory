@@ -1,18 +1,20 @@
 <?php
 
-namespace JsonSchema\Template\OpenAPI\v2_0;
+namespace JsonSchema\Template\Swagger\v2_0;
 
 use JsonSchema\AbstractSchema;
+use JsonSchema\Template\Swagger\v2_0\Parameter;
 use stdClass;
 
-class Schema extends AbstractSchema
+class OpenAPI extends AbstractSchema
 {
     /**
      * @required
-     * @pattern [0-9]+\.[0-9]+\.[0-9]+
+     * @pattern [0-9]+(\.[0-9]+){,2}
+     * @enum 2.0
      * @var string $swagger
      */
-    public $swagger;
+    public $swagger = "2.0";
 
     /**
      * @required
@@ -31,6 +33,7 @@ class Schema extends AbstractSchema
     public $basePath;
 
     /**
+     * @enum http|https|ws|wss
      * @var string[] $schemes
      */
     public $schemes;
@@ -52,29 +55,39 @@ class Schema extends AbstractSchema
     public $produces;
 
     /**
-     * @pattern ^\/[\w/\-%.]+[^\/]$ v2_0\Path\Item
+     * @required
+     * @patternProperties ^\/[\w/\-%.]+[^\/]$ v2_0\Path\Item
      * @var stdClass $paths
      */
     public $paths;
 
     /**
-     * @pattern ^\/[\w/\-%.]+[^\/]$ v2_0\Schema\Path\Item
+     * @patternProperties ^\/[\w/\-%.]+[^\/]$ SchemaInterface
      * @var stdClass $paths
      */
     public $definitions;
 
+    /**
+     * @patternProperties .+ Parameter\Body|Parameter\FormData|Parameter\Header|Parameter\Path|Parameter\Query
+     * @var stdClass $parameters
+     */
     public $parameters;
 
+    /**
+     * @patternProperties .* Schema\Response
+     * @var stdClass $responses
+     */
     public $responses;
 
     /**
-     * @generic string[]
+     * @patternProperties .+ string[]
      * @var stdClass $security
      */
     public $security;
 
     /**
-     * @var Security\ApiKey|Security\Basic|Security\OAuth2 $security
+     * @patternProperties .+ Security\ApiKey|Security\Basic|Security\OAuth2
+     * @var stdClass $security
      */
     public $securityDefinitions;
 

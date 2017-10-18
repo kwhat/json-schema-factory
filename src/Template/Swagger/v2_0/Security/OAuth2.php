@@ -1,6 +1,6 @@
 <?php
 
-namespace JsonSchema\Template\OpenAPI\v2_0\Security;
+namespace JsonSchema\Template\Swagger\v2_0\Security;
 
 use JsonSchema;
 use JsonSchema\AbstractSchema;

@@ -1,10 +1,10 @@
 <?php
 
-namespace JsonSchema\Template\OpenAPI\v2_0\Schema\Info;
+namespace JsonSchema\Template\Swagger\v2_0\Schema\Info;
 
 use JsonSchema\AbstractSchema;
 
-class Contact extends AbstractSchema
+class License extends AbstractSchema
 {
     /**
      * @required
@@ -16,9 +16,4 @@ class Contact extends AbstractSchema
      * @var string $url
      */
     public $url;
-
-    /**
-     * @var string $email
-     */
-    public $email;
 }

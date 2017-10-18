@@ -29,6 +29,10 @@ class Composer
 
         $autoloadMap = $mainPackage->getAutoload();
 
+
+        //var_dump($autoloadMap);
+        //die("TEST");
+
         /** @var string $installDir */
 //        $installDir = realpath($installationManager->getInstallPath($mainPackage));
 

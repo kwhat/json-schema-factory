@@ -1,9 +1,9 @@
 <?php
 
-namespace JsonSchema\Template\OpenAPI\v2_0\Schema\Path;
+namespace JsonSchema\Template\Swagger\v2_0\Schema\Path;
 
 use JsonSchema\AbstractSchema;
-use JsonSchema\Template\OpenAPI;
+use JsonSchema\Template\Swagger;
 
 class Item extends AbstractSchema
 {
@@ -49,7 +49,7 @@ class Item extends AbstractSchema
 
     /**
      * @uniqueItems
-     * @var OpenAPI\v2_0\Parameter\Body[]
+     * @var Swagger\v2_0\Parameter\Body[]
      */
     public $parameters;
 }

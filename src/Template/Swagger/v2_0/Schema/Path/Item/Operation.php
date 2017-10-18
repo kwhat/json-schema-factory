@@ -1,9 +1,9 @@
 <?php
 
-namespace JsonSchema\Template\OpenAPI\v2_0\Schema\Path\Item;
+namespace JsonSchema\Template\Swagger\v2_0\Schema\Path\Item;
 
-use JsonSchema\Template\OpenAPI\v2_0\Parameter;
-use JsonSchema\Template\OpenAPI\v2_0\Schema;
+use JsonSchema\Template\Swagger\v2_0\Parameter;
+use JsonSchema\Template\Swagger\v2_0\Schema;
 use JsonSchema\AbstractSchema;
 use stdClass;
 
@@ -36,23 +36,30 @@ class Operation extends AbstractSchema
     public $operationId;
 
     /**
+     * @uniqueItems
+     * @minItems 1
+     * @pattern [a-zA-Z\-]+/[a-zA-Z\-]+
      * @var string[] $consumes
      */
     public $consumes;
 
     /**
+     * @uniqueItems
+     * @minItems 1
+     * @pattern ^[a-zA-Z0-9\-]+\/[a-zA-Z0-9\-]+
      * @var string[] $produces
      */
     public $produces;
-
+    
     /**
-     * @patternProperties [\w]+ Parameter\Body
+     * @patternProperties .+ Parameter\Body|Parameter\FormData|Parameter\Header|Parameter\Path|Parameter\Query
      * @var stdClass $parameters
      */
     public $parameters;
 
     /**
-     * @var string[] $parameters
+     * @patternProperties .+ Security\ApiKey|Security\Basic|Security\OAuth2
+     * @var stdClass $security
      */
     public $security;
 }

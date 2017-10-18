@@ -1,10 +1,10 @@
 <?php
 
-namespace JsonSchema\Template\OpenAPI\v2_0\Security\Flow;
+namespace JsonSchema\Template\Swagger\v2_0\Security\Flow;
 
 use JsonSchema\AbstractSchema;
 
-class Application extends AbstractSchema
+class AccessCode extends AbstractSchema
 {
     /**
      * @required

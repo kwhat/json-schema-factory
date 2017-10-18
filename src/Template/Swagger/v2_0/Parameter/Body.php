@@ -1,10 +1,11 @@
 <?php
 
-namespace JsonSchema\Template\OpenAPI\v2_0\Parameter;
+namespace JsonSchema\Template\Swagger\v2_0\Parameter;
 
 use JsonSchema\AbstractSchema;
+use JsonSchema\SchemaInterface;
 
-class Header extends AbstractSchema
+class Body extends AbstractSchema
 {
     /**
      * @required
@@ -14,7 +15,7 @@ class Header extends AbstractSchema
 
     /**
      * @required
-     * @enum header
+     * @enum body
      * @var string $in
      */
     public $in;
@@ -28,4 +29,10 @@ class Header extends AbstractSchema
      * @var bool $required
      */
     public $required;
+
+    /**
+     * @required
+     * @var SchemaInterface $schema
+     */
+    public $schema;
 }
