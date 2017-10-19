@@ -1,10 +1,8 @@
 <?php
 
-namespace JsonSchema\Template\Swagger\v2_0\Schema;
+namespace JsonSchema\Template\OpenAPI\v2_0\Schema;
 
 use JsonSchema\AbstractSchema;
-use JsonSchema\SchemaInterface;
-use stdClass;
 
 class Response extends AbstractSchema
 {
@@ -15,19 +13,17 @@ class Response extends AbstractSchema
     public $description;
 
     /**
-     * @var SchemaInterface $schema
+     * @var string $schema
      */
     public $schema;
 
     /**
-     * @patternProperties [a-zA-Z0-9\-]+ Header
-     * @var stdClass $headers
+     * @var string $termsOfService
      */
     public $headers;
 
     /**
-     * @patternProperties [a-zA-Z\-]+/[a-zA-Z\-]+
-     * @var SchemaInterface $examples
+     * @var Info\Contact $contact
      */
     public $examples;
 }

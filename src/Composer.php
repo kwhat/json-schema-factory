@@ -17,9 +17,6 @@ class Composer
         /** @var \Composer\Composer $composer */
         $composer = $event->getComposer();
 
-        /** @var Installer\InstallationManager $installationManager */
-        $installationManager = $composer->getInstallationManager();
-
         /** @var \Composer\Autoload\AutoloadGenerator $autoloadGenerator */
         $autoloadGenerator = $composer->getAutoloadGenerator();
         $autoloadGenerator->setDevMode(false);
@@ -28,38 +25,6 @@ class Composer
         $mainPackage = $composer->getPackage();
 
         $autoloadMap = $mainPackage->getAutoload();
-
-
-        //var_dump($autoloadMap);
-        //die("TEST");
-
-        /** @var string $installDir */
-//        $installDir = realpath($installationManager->getInstallPath($mainPackage));
-
-        /** @var Repository\InstalledRepositoryInterface $repoManager */
-//        $repoManager = $composer->getRepositoryManager()->getLocalRepository();
-
-        /** @var Package\CompletePackageInterface[] $packageMap */
-        //$packageMap = $autoloadGenerator->buildPackageMap($installationManager, $mainPackage, $repoManager->getCanonicalPackages());
-//        $packageMap = $autoloadGenerator->buildPackageMap($installationManager, $mainPackage, array());
-        /** @var array $autoloadMap */
-//        $autoloadMap = $autoloadGenerator->parseAutoloads($packageMap, $mainPackage);
-        //var_dump($autoloadMap);
-        ///die($installDir);
-
-
-
-        /** @var Installer\InstallationManager $installationManager */
-//        $installationManager = $composer->getInstallationManager();
-
-        /** @var Package\PackageInterface $mainPackage */
-//        $mainPackage = $composer->getPackage();
-
-        /** @var string $installDir */
-//        $installDir = realpath($installationManager->getInstallPath($mainPackage));
-
-//        $autoloadMap = $mainPackage->getAutoload();
-
 
         foreach ($autoloadMap as $std => $lookup) {
             switch ($std) {
@@ -71,7 +36,7 @@ class Composer
                             // TODO Maybe Throw Warning?
                         }
 
-                        if (! is_array($paths)) {
+                        if (!is_array($paths)) {
                             $paths = array($paths);
                         }
 
@@ -83,12 +48,14 @@ class Composer
                             if (is_dir($path)) {
                                 $directory = new RecursiveDirectoryIterator($path);
                                 $iterator = new RecursiveIteratorIterator($directory);
-                                $regex = new RegexIterator($iterator, '/^' . preg_quote($path, DIRECTORY_SEPARATOR) . '(.+)\.php$/i', RegexIterator::REPLACE);
+                                $regex = new RegexIterator($iterator,
+                                    '/^' . preg_quote($path, DIRECTORY_SEPARATOR) . '(.+)\.php$/i',
+                                    RegexIterator::REPLACE);
                                 $regex->replacement = '$1';
 
                                 foreach ($regex as $file => $class) {
                                     $pathInfo = pathinfo($class);
-                                    $class = "{$namespace}" . str_replace(DIRECTORY_SEPARATOR, "\\", $class);
+                                    $class = $namespace . str_replace(DIRECTORY_SEPARATOR, "\\", $class);
 
                                     if (is_subclass_of($class, SchemaInterface::class, true)) {
                                         $args = $event->getArguments();
@@ -101,8 +68,9 @@ class Composer
                                             }
                                         }
 
-                                        $schemaPath = $prefix . str_replace("\\", DIRECTORY_SEPARATOR, $namespace) . "{$pathInfo["dirname"]}";
-                                        if (! file_exists($schemaPath)) {
+                                        $schemaPath = $prefix . str_replace("\\", DIRECTORY_SEPARATOR,
+                                                $namespace) . "{$pathInfo["dirname"]}";
+                                        if (!file_exists($schemaPath)) {
                                             mkdir($schemaPath, 0755, true);
                                         }
 
