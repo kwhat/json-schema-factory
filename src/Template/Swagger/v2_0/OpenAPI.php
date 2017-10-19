@@ -92,7 +92,7 @@ class OpenAPI extends AbstractSchema
     public $securityDefinitions;
 
     /**
-     * @generic OpenAPI\AbstractParameter
+     * @patternProperties .+ OpenAPI\AbstractParameter
      * @var stdClass $tags
      */
     public $tags;
