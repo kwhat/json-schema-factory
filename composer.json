@@ -28,12 +28,12 @@
             "JsonSchema\\": "src"
         }
     },
-    "scripts": {
-        "generate-schema": "JsonSchema\\Composer::generateSchema"
-    },
     "autoload-dev": {
         "psr-4": {
             "JsonSchema\\Test\\": "tests"
         }
+    },
+    "scripts": {
+        "generate-schema": "JsonSchema\\Composer::generateSchema"
     }
 }

@@ -10,7 +10,7 @@ interface SchemaInterface extends JsonSerializable
      * Specify data which should be serialized to JSON.
      * @link http://php.net/manual/en/jsonserializable.jsonserialize.php
      *
-     * @return SchemaInterface
+     * @return JsonSerializable
      */
     public function jsonSerialize();
 

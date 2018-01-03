@@ -15,7 +15,7 @@ class ApiKey extends AbstractSchema
 
     /**
      * @required
-     * @enum query header
+     * @enum query|header
      * @var string $in
      */
     public $in;

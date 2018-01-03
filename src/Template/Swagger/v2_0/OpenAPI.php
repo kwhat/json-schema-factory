@@ -9,6 +9,8 @@ use stdClass;
 class OpenAPI extends AbstractSchema
 {
     /**
+     * The version of this OpenAPI document, do not change.
+     *
      * @required
      * @pattern [0-9]+(\.[0-9]+){,2}
      * @enum 2.0
@@ -17,28 +19,38 @@ class OpenAPI extends AbstractSchema
     public $swagger = "2.0";
 
     /**
+     * The info sub-document for this group of endpoints.
+     *
      * @required
      * @var Schema\Info $info
      */
     public $info;
 
     /**
+     * The hostname for this service.
+     *
      * @var string $host
      */
     public $host;
 
     /**
+     * The base uri for this group of endpoints.
+     *
      * @var string $basePath
      */
     public $basePath;
 
     /**
+     * The protocols used to access this group of endpoints.
+     *
      * @enum http|https|ws|wss
      * @var string[] $schemes
      */
     public $schemes;
 
     /**
+     * The mime-types accepted by this group of endpoints.
+     *
      * @uniqueItems
      * @minItems 1
      * @pattern [a-zA-Z\-]+/[a-zA-Z\-]+
@@ -47,6 +59,8 @@ class OpenAPI extends AbstractSchema
     public $consumes;
 
     /**
+     * The mime-types produced by this group of endpoints.
+     *
      * @uniqueItems
      * @minItems 1
      * @pattern ^[a-zA-Z0-9\-]+\/[a-zA-Z0-9\-]+
@@ -55,8 +69,10 @@ class OpenAPI extends AbstractSchema
     public $produces;
 
     /**
+     * An object map of uri patterns to an endpoint item object.
+     *
      * @required
-     * @patternProperties ^\/[\w/\-%.]+[^\/]$ v2_0\Path\Item
+     * @patternProperties ^\/[\w/\-%.]+[^\/]$ v2_0\Schema\Path\Item
      * @var stdClass $paths
      */
     public $paths;
@@ -98,6 +114,7 @@ class OpenAPI extends AbstractSchema
     public $tags;
 
     /**
+     * A hyperlink to an external documentation resource.
      * @var Schema\ExternalDocumentation $externalDocs
      */
     public $externalDocs;
