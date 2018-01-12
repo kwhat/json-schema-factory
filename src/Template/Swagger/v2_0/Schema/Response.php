@@ -3,6 +3,7 @@
 namespace JsonSchema\Template\OpenAPI\v2_0\Schema;
 
 use JsonSchema\AbstractSchema;
+use stdClass;
 
 class Response extends AbstractSchema
 {
@@ -13,7 +14,7 @@ class Response extends AbstractSchema
     public $description;
 
     /**
-     * @var string $schema
+     * @var string|stdClass $schema
      */
     public $schema;
 
@@ -23,7 +24,7 @@ class Response extends AbstractSchema
     public $headers;
 
     /**
-     * @var Info\Contact $contact
+     * @var stdClass $examples
      */
-    public $examples;
+    public $example;
 }

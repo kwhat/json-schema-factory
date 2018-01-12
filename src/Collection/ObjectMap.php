@@ -225,7 +225,7 @@ class ObjectMap extends AbstractSchema
 
                     case "@maxProperties":
                         if (! isset($args[0])) {
-                            throw new Exception\MalformedAnnotation("Malformed annotation {$this->class}::{$annotation}!");
+                            throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
                         }
 
                         $this->maxProperties = (int) $args[0];
@@ -233,7 +233,7 @@ class ObjectMap extends AbstractSchema
 
                     case "@minProperties":
                         if (! isset($args[0])) {
-                            throw new Exception\MalformedAnnotation("Malformed annotation {$this->class}::{$annotation}!");
+                            throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
                         }
 
                         $this->minProperties = (int) $args[0];
@@ -241,7 +241,7 @@ class ObjectMap extends AbstractSchema
 
                     case "@patternProperties":
                         if (! isset($args[0]) || ! isset($args[1])) {
-                            throw new Exception\MalformedAnnotation("Malformed annotation {$this->class}::{$annotation}!");
+                            throw new Exception\MalformedAnnotation("Malformed annotation {$annotation}!");
                         }
 
                         $this->patternProperties[$args[0]] = Factory::create($this->getFullNamespace($args[1]), $annotations);
@@ -262,6 +262,7 @@ class ObjectMap extends AbstractSchema
         $fullNamespace = false;
 
         $isArray = false;
+        // FIXME This should be regex?
         if (substr($type, -2) == "[]") {
             $isArray = true;
             $type = substr($type, 0, -2);

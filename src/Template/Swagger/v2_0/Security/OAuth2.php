@@ -16,7 +16,7 @@ class OAuth2 extends AbstractSchema
 {
     /**
      * @required
-     * @enum implicit password application accessCode
+     * @enum implicit|password|application|accessCode
      * @var AccessCode|Application|Implicit|Password $flow
      */
     public $flow;

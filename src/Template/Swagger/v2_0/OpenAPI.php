@@ -90,7 +90,7 @@ class OpenAPI extends AbstractSchema
     public $parameters;
 
     /**
-     * @patternProperties .* Schema\Response
+     * @patternProperties ^[1-5][0-9]{2}$ Schema\Response
      * @var stdClass $responses
      */
     public $responses;

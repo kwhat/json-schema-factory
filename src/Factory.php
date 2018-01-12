@@ -9,7 +9,7 @@ class Factory
     /**
      * Track definitions by schema path key.
      *
-     * @var AbstractSchema[string] $definitions
+     * @var SchemaInterface[string] $definitions
      */
     protected static $definitions = array();
 
@@ -17,7 +17,7 @@ class Factory
      * @param string $class
      * @param string[] $annotations
      *
-     * @return AbstractSchema
+     * @return SchemaInterface
      * @throws Exception\ClassNotFound
      * @throws Exception\MalformedAnnotation
      */
