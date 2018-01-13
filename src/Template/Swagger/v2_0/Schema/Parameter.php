@@ -1,10 +1,11 @@
 <?php
 
-namespace JsonSchema\Template\Swagger\v2_0\Parameter;
+namespace JsonSchema\Template\Swagger\v2_0\Schema;
 
 use JsonSchema\AbstractSchema;
+use JsonSchema\SchemaInterface;
 
-class Query extends AbstractSchema
+class Parameter extends AbstractSchema
 {
     /**
      * @required
@@ -14,7 +15,7 @@ class Query extends AbstractSchema
 
     /**
      * @required
-     * @enum query
+     * @enum body|formData|header|path|query
      * @var string $in
      */
     public $in;
@@ -28,4 +29,10 @@ class Query extends AbstractSchema
      * @var bool $required
      */
     public $required;
+
+    /**
+     * @required
+     * @var SchemaInterface $schema
+     */
+    public $schema;
 }

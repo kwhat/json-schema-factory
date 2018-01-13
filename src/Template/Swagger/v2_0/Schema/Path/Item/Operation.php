@@ -2,7 +2,6 @@
 
 namespace JsonSchema\Template\Swagger\v2_0\Schema\Path\Item;
 
-use JsonSchema\Template\Swagger\v2_0\Parameter;
 use JsonSchema\Template\Swagger\v2_0\Schema;
 use JsonSchema\AbstractSchema;
 use stdClass;
@@ -52,10 +51,15 @@ class Operation extends AbstractSchema
     public $produces;
     
     /**
-     * @patternProperties .+ Parameter\Body|Parameter\FormData|Parameter\Header|Parameter\Path|Parameter\Query
-     * @var stdClass $parameters
+     * @var Schema\Parameter[] $parameters
      */
     public $parameters;
+
+    /**
+     * @patternProperties ^[1-5]{1}[0-9]{2}$ Schema\Response
+     * @var stdClass $parameters
+     */
+    public $responses;
 
     /**
      * @patternProperties .+ Security\ApiKey|Security\Basic|Security\OAuth2

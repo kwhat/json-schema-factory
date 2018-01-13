@@ -312,6 +312,7 @@ class ObjectMap extends AbstractSchema
         }
 
         if ($fullNamespace && $isArray) {
+            // FIXME Should this use the name space from regex above
             $fullNamespace .= "[]";
         }
 
