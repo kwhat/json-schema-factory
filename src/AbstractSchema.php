@@ -44,6 +44,27 @@ abstract class AbstractSchema implements SchemaInterface
     public $default;
 
     /**
+     * @param string $name
+     * @param mixed $value
+     *
+     * @throws Exception\InvalidProperty
+     */
+    public function __set($name, $value)
+    {
+        throw new Exception\InvalidProperty(static::class, " does not contain property ${name}");
+    }
+
+    /**
+     * @param string $name
+     *
+     * @throws Exception\InvalidProperty
+     */
+    public function __get($name)
+    {
+        throw new Exception\InvalidProperty(static::class, " does not contain property ${name}");
+    }
+
+    /**
      * @param string[] $annotations
      *
      * @throws Exception\MalformedAnnotation
